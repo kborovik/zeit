@@ -6,6 +6,7 @@ ask what was true last spring.
 
 from .context import EPISODE_WINDOW, recent_episodes
 from .embedder import Embedder, PydanticAIEmbedder
+from .graph import Graph, ModelStack
 from .invalidate import invalidate
 from .resolve import BoundEntity, Resolution, resolve
 from .store import Store, SurrealStore
@@ -20,8 +21,10 @@ __all__ = [
     "Entity",
     "Episode",
     "Fact",
+    "Graph",
     "IngestResult",
     "Mention",
+    "ModelStack",
     "PydanticAIEmbedder",
     "Resolution",
     "SearchHits",

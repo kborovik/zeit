@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Graph ingest:** `Graph.add_episode` runs context, extract, resolve, invalidate, embed, and persist, then returns `IngestResult`.
 - **Invalidate:** a contradicting claim expires the old fact in place and keeps both world time and transaction time on the row.
 - **Resolve:** match extracted surface forms to existing entities so two names for the same thing share one uuid.
 - **Context window:** fetch the last N episodes (default 3) in chronological order for extract and resolve.
