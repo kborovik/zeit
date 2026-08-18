@@ -36,6 +36,7 @@ V10: entity-merge — two surface forms of same entity in one database → one `
 V11: py314-async — Python ≥3.14; public API async only; uv env; ruff lint+fmt; basedpyright strict
 V12: first-party-prompts — new PydanticAI output models + instructions
 V13: window-bound — `episode_window` default 3; extract/resolve fan-out bounded by `max_concurrency`
+V14: md-ospl — Markdown prose: one sentence per line; sentence ! wrap across lines; headings tables code-fences exempt
 
 ## §T TASKS
 
@@ -53,6 +54,7 @@ T10|.|add `Graph.add_triplet` skip Extract|V1
 T11|.|add `Graph.search` hybrid RRF + one-hop + uuid getters|V9
 T12|.|wire Logfire on PydanticAI calls; no token in Graph|V7
 T13|.|test expire, entity merge, db tenant isolation, valid_now search|V2,V3,V9,V10
+T14|.|sweep `*.md` one sentence per line; sentence ! wrap|V14
 
 ## §B BUGS
 
