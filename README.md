@@ -1,4 +1,4 @@
-# Stay current without losing what used to be true
+# Bi-Temporal Knowledge Graph
 
 **zeit** is a Python library for building LLM applications.
 It turns notes, chats, and events into a knowledge graph your model can search.
@@ -41,6 +41,7 @@ Ask what was true in February and you still get Acme.
 
 ## Intended shape
 
+Install the PyPI package `zeit-graph`; the import stays `zeit`.
 Drop a `Graph` into your LLM app.
 The public API is async.
 A `Graph` is one SurrealDB namespace + database.
@@ -101,8 +102,11 @@ gmake release patch
 
 `gmake release` is the sole release path.
 It runs `gmake check`, refuses an empty Unreleased, bumps the version, promotes Unreleased to `## [vX.Y.Z] - YYYY-MM-DD`, then commits, tags, and pushes.
-Do not run `gh release create` locally.
-GitHub Actions on tag `v*` re-runs CI, builds sdist and wheel, and creates a GitHub Release whose notes are that promoted section.
+Do not run `gh release create` or `uv publish` locally.
+GitHub Actions on tag `v*` re-runs CI, builds sdist and wheel, creates a GitHub Release whose notes are that promoted section, and publishes `zeit-graph` to PyPI.
+Publishing uses Trusted Publishing against the GitHub `pypi` environment.
+Do not store a PyPI token in the repo.
+Before the first upload, add a pending trusted publisher on PyPI for project `zeit-graph`, owner `kborovik`, repository `zeit`, workflow `release.yml`, environment `pypi`.
 
 ## How it runs
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+- **PyPI publish:** tag `v*` CI builds the distributions, creates the GitHub Release, and publishes `zeit-graph` to PyPI with Trusted Publishing.
+
 ## [v0.1.0] - 2026-08-18
 
 ### Changed

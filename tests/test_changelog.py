@@ -176,6 +176,7 @@ def test_makefile_release_promotes_changelog() -> None:
     assert "scripts/changelog promote" in text
     assert "CHANGELOG.md" in text
     assert "gh release create" not in text
+    assert "uv publish" not in text
 
 
 def test_release_yml_notes_from_changelog() -> None:
@@ -185,6 +186,10 @@ def test_release_yml_notes_from_changelog() -> None:
     assert "--generate-notes" not in text
     assert "gh release create" in text
     assert "uses: ./.github/workflows/ci.yml" in text
+    assert "uv publish" in text
+    assert "id-token: write" in text
+    assert "name: pypi" in text
+    assert "PYPI_TOKEN" not in text
 
 
 def test_ci_yml_matches_local_check() -> None:

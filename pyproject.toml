@@ -3,9 +3,13 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "zeit"
+name = "zeit-graph"
 version = "0.1.0"
 description = "Most knowledge graphs overwrite when facts change. zeit expires the old fact instead, so you can search what's true now and still ask what was true last spring."
+readme = "README.md"
+authors = [
+    { name = "Konstantin Borovik", email = "github@lab5.ca" },
+]
 requires-python = ">=3.14"
 dependencies = [
     "pydantic-ai-slim[google]>=2.31.1",
@@ -13,6 +17,12 @@ dependencies = [
     "surrealdb>=2.0.0",
     "logfire>=4.40.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kborovik/zeit"
+Repository = "https://github.com/kborovik/zeit"
+Changelog = "https://github.com/kborovik/zeit/blob/main/CHANGELOG.md"
+Issues = "https://github.com/kborovik/zeit/issues"
 
 [dependency-groups]
 dev = [

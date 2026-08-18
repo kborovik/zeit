@@ -35,6 +35,12 @@ def test_import_zeit_from_src() -> None:
     assert package_dir == (ROOT / "src" / "zeit").resolve()
 
 
+def test_pypi_name_is_zeit_graph() -> None:
+    project = _table(_pyproject()["project"])
+    assert project["name"] == "zeit-graph"
+    assert zeit.__name__ == "zeit"
+
+
 def test_ruff_targets_py314() -> None:
     ruff = _table(_table(_pyproject()["tool"])["ruff"])
     assert ruff["target-version"] == "py314"
