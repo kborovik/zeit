@@ -82,7 +82,9 @@ That creates `.venv` from `uv.lock` and runs lint plus tests.
 `gmake e2e` runs `pytest -m e2e` against live Gemini, brew SurrealDB, and process-start Logfire.
 Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY` plus `LOGFIRE_TOKEN`.
 The e2e harness reads repo `.env` before start.
-Install SurrealDB with `brew install surrealdb/tap/surreal`, or set `SURREAL_URL` to reuse a running host.
+`SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`.
+Leave it empty to start a brew SurrealDB instead.
+Install SurrealDB with `brew install surrealdb/tap/surreal`.
 pytest asserts the graph only.
 After a run, follow the Logfire MCP recipe in `AGENTS.md`.
 `gmake help` lists the rest.

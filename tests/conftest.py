@@ -24,6 +24,7 @@ from zeit import Graph, IngestResult
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPO_ENV = REPO_ROOT / ".env"
+DEFAULT_SURREAL_URL = "ws://127.0.0.1:8000/rpc"
 
 
 def load_repo_env(path: Path | None = None) -> None:
@@ -49,6 +50,13 @@ def has_live_keys() -> bool:
     has_gemini = bool(os.environ.get("GEMINI_API_KEY"))
     has_logfire = bool(os.environ.get("LOGFIRE_TOKEN"))
     return has_gemini and has_logfire
+
+
+def resolve_surreal_url() -> str | None:
+    if "SURREAL_URL" in os.environ:
+        value = os.environ["SURREAL_URL"].strip()
+        return value or None
+    return DEFAULT_SURREAL_URL
 
 
 def _e2e_deselected(config: pytest.Config) -> bool:
@@ -96,7 +104,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
 def surreal_url() -> Iterator[str]:
     if not has_live_keys():
         pytest.skip("e2e needs GEMINI_API_KEY and LOGFIRE_TOKEN")
-    existing = os.environ.get("SURREAL_URL")
+    existing = resolve_surreal_url()
     if existing:
         yield existing
         return

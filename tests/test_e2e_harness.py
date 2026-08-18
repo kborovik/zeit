@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import load_repo_env
+from conftest import DEFAULT_SURREAL_URL, load_repo_env, resolve_surreal_url
 from zeit import Graph
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +40,7 @@ def test_e2e_skips_without_live_keys() -> None:
     assert "GOOGLE_API_KEY" not in source
     assert "LOGFIRE_TOKEN" in source
     assert "SURREAL_URL" in source
+    assert "DEFAULT_SURREAL_URL" in source
     assert "brew install surrealdb/tap/surreal" in source
     assert "has_live_keys" in source
     assert "pytest.skip" in source
@@ -51,6 +52,7 @@ def test_env_example_names_keys() -> None:
     assert "GOOGLE_API_KEY" not in text
     assert "LOGFIRE_TOKEN" in text
     assert "SURREAL_URL" in text
+    assert DEFAULT_SURREAL_URL in text
 
 
 def test_dotenv_is_not_committed() -> None:
@@ -114,6 +116,21 @@ def test_load_repo_env_does_not_override(
 
 def test_load_repo_env_missing_file_is_noop(tmp_path: Path) -> None:
     load_repo_env(tmp_path / ".env")
+
+
+def test_surreal_url_defaults_to_local(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SURREAL_URL", raising=False)
+    assert resolve_surreal_url() == DEFAULT_SURREAL_URL
+
+
+def test_surreal_url_empty_starts_brew(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SURREAL_URL", "")
+    assert resolve_surreal_url() is None
+
+
+def test_surreal_url_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SURREAL_URL", "ws://example:8000/rpc")
+    assert resolve_surreal_url() == "ws://example:8000/rpc"
 
 
 def test_e2e_configures_logfire_at_process_start() -> None:

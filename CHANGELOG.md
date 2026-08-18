@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Surreal URL:** e2e `SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`; leave it empty to start a brew instance.
 - **Gemini key:** default Gemini path and e2e read `GEMINI_API_KEY` only.
 - **Default models:** `Graph` no longer requires a `ModelStack`; extract, resolve, and invalidate default to `google:gemini-3.7-flash`; the embedder defaults to `google:gemini-embedding-2`.
 - **PydanticAI slim:** runtime dependency is `pydantic-ai-slim[google]` only; unused extras (CLI, OpenAI, Anthropic) are dropped.
