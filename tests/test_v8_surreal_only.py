@@ -98,6 +98,12 @@ def test_schema_is_surrealql() -> None:
     assert "DEFINE TABLE OVERWRITE fact" in SCHEMA
     assert "DEFINE TABLE OVERWRITE mention" in SCHEMA
     assert "DEFINE INDEX OVERWRITE fact_statement_ft" in SCHEMA
+    assert "DEFINE FIELD attributes ON entity TYPE object FLEXIBLE" in SCHEMA
+    assert "FLEXIBLE TYPE" not in SCHEMA
+    assert "SEARCH ANALYZER zeit BM25" in SCHEMA
+    source = (SRC / "store.py").read_text(encoding="utf-8")
+    assert "FULLTEXT ANALYZER zeit BM25" in source
+    assert "_search_clause_rejected" in source
 
 
 async def test_put_get_roundtrip(store: SurrealStore) -> None:

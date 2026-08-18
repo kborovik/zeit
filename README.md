@@ -79,7 +79,7 @@ That creates `.venv` from `uv.lock` and runs lint plus tests.
 `gmake lint` is check-only (`ruff check`, `ruff format --check`, basedpyright).
 `gmake format` applies ruff.
 `gmake test` runs pytest excluding e2e.
-`gmake e2e` runs `pytest -m e2e` against live Gemini, brew SurrealDB, and process-start Logfire.
+`gmake e2e` starts local SurrealDB on `127.0.0.1:8000` if needed, then runs `pytest -m e2e` against live Gemini and process-start Logfire.
 Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY` plus `LOGFIRE_TOKEN`.
 The e2e harness reads repo `.env` before start.
 `SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`.

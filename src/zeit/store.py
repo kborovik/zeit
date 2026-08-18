@@ -23,14 +23,16 @@ type Client = (
     | AsyncHttpSurrealConnection
 )
 
-SCHEMA = """
+_FT_SEARCH = "SEARCH ANALYZER zeit BM25"
+_FT_FULLTEXT = "FULLTEXT ANALYZER zeit BM25"
+_SCHEMA_TEMPLATE = """
 DEFINE TABLE OVERWRITE episode SCHEMAFULL;
 DEFINE FIELD content ON episode TYPE string;
 DEFINE FIELD created_at ON episode TYPE datetime;
 
 DEFINE TABLE OVERWRITE entity SCHEMAFULL;
 DEFINE FIELD name ON entity TYPE string;
-DEFINE FIELD attributes ON entity FLEXIBLE TYPE object;
+DEFINE FIELD attributes ON entity TYPE object FLEXIBLE;
 DEFINE FIELD created_at ON entity TYPE datetime;
 DEFINE FIELD embedding ON entity TYPE option<array<float>>;
 
@@ -52,11 +54,17 @@ DEFINE FIELD surface ON mention TYPE string;
 
 DEFINE INDEX OVERWRITE episode_created_at ON episode FIELDS created_at;
 DEFINE ANALYZER OVERWRITE zeit TOKENIZERS class, camel FILTERS lowercase, ascii;
-DEFINE INDEX OVERWRITE fact_statement_ft ON fact FIELDS statement
-    SEARCH ANALYZER zeit BM25;
-DEFINE INDEX OVERWRITE entity_name_ft ON entity FIELDS name
-    SEARCH ANALYZER zeit BM25;
+DEFINE INDEX OVERWRITE fact_statement_ft ON fact FIELDS statement __FT__;
+DEFINE INDEX OVERWRITE entity_name_ft ON entity FIELDS name __FT__;
 """
+
+
+def _schema_sql(*, fulltext: bool = False) -> str:
+    clause = _FT_FULLTEXT if fulltext else _FT_SEARCH
+    return _SCHEMA_TEMPLATE.replace("__FT__", clause)
+
+
+SCHEMA = _schema_sql()
 
 _TABLE: dict[type[Persistable], str] = {
     Episode: "episode",
@@ -227,7 +235,9 @@ class SurrealStore:
             if self._credentials is not None and not _is_embedded(self._url):
                 await self._db.signin(cast(dict[str, Value], self._credentials))
             await self._db.use(self.namespace, self.database)
-            raw = await self._db.query_raw(SCHEMA)
+            raw = await self._db.query_raw(_schema_sql())
+            if _search_clause_rejected(raw):
+                raw = await self._db.query_raw(_schema_sql(fulltext=True))
             _raise_if_schema_failed(raw)
             self._ready = True
 
@@ -462,6 +472,33 @@ def _rrf[T: Persistable](rankings: list[list[T]], *, k: int = _RRF_K) -> list[T]
         first[uuid]
         for uuid in sorted(scores, key=lambda item: scores[item], reverse=True)
     ]
+
+
+def _schema_error_message(raw: Mapping[str, object]) -> str | None:
+    error = raw.get("error")
+    if isinstance(error, dict):
+        message = cast(dict[object, object], error).get("message")
+        if isinstance(message, str):
+            return message
+    result = raw.get("result")
+    if not isinstance(result, list):
+        return None
+    for statement in cast(list[object], result):
+        if not isinstance(statement, dict):
+            continue
+        row = cast(dict[object, object], statement)
+        if row.get("status") == "OK":
+            continue
+        for key in ("result", "message"):
+            value = row.get(key)
+            if isinstance(value, str):
+                return value
+    return None
+
+
+def _search_clause_rejected(raw: Mapping[str, object]) -> bool:
+    message = _schema_error_message(raw)
+    return message is not None and "SEARCH ANALYZER" in message
 
 
 def _raise_if_schema_failed(raw: Mapping[str, object]) -> None:

@@ -31,6 +31,9 @@ def test_e2e_marker_and_command() -> None:
     assert "e2e: live SurrealDB, Gemini, and Logfire" in pyproject
     assert "pytest -m e2e" in makefile
     assert 'pytest -m "not e2e"' in makefile
+    assert "surreal start" in makefile
+    assert "--bind 127.0.0.1:8000" in makefile
+    assert "brew install surrealdb/tap/surreal" in makefile
     assert "brew install surrealdb/tap/surreal" in _source(ROOT / "README.md")
 
 
