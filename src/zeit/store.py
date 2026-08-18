@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Protocol, cast, overload, runtime_checkable
 from uuid import UUID
@@ -193,6 +193,22 @@ class SurrealStore:
             _bind({"name": name}),
         )
         return tuple(_entities(result))
+
+    async def open_facts(self, entity_ids: Sequence[UUID]) -> tuple[Fact, ...]:
+        unique = list(dict.fromkeys(entity_ids))
+        if not unique:
+            return ()
+        await self._ensure()
+        result = await self._db.query(
+            """
+            SELECT * FROM fact
+            WHERE expired_at = NONE
+              AND (subject_id IN $ids OR object_id IN $ids)
+            ORDER BY created_at ASC
+            """,
+            _bind({"ids": [_rid("entity", item) for item in unique]}),
+        )
+        return tuple(_facts(result))
 
     async def _ensure(self) -> None:
         if self._ready:

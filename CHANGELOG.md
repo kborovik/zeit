@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Invalidate:** a contradicting claim expires the old fact in place and keeps both world time and transaction time on the row.
 - **Resolve:** match extracted surface forms to existing entities so two names for the same thing share one uuid.
 - **Context window:** fetch the last N episodes (default 3) in chronological order for extract and resolve.
 - **Extract agents:** first-party PydanticAI agents pull entities and facts from an episode.

@@ -15,6 +15,7 @@ from zeit.extract import (
     extract_facts,
     extract_facts_agent,
 )
+from zeit.invalidate import invalidate_fact_agent
 from zeit.resolve import resolve_entity_agent
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,10 +29,13 @@ def test_extract_agents_are_pydantic_ai_agents() -> None:
     assert isinstance(extract_entities_agent, Agent)
     assert isinstance(extract_facts_agent, Agent)
     assert isinstance(resolve_entity_agent, Agent)
+    assert isinstance(invalidate_fact_agent, Agent)
     source = (SRC / "extract.py").read_text(encoding="utf-8")
     assert "from pydantic_ai import Agent" in source
     resolve_source = (SRC / "resolve.py").read_text(encoding="utf-8")
     assert "from pydantic_ai import Agent" in resolve_source
+    invalidate_source = (SRC / "invalidate.py").read_text(encoding="utf-8")
+    assert "from pydantic_ai import Agent" in invalidate_source
 
 
 def test_src_does_not_import_other_llm_clients() -> None:
