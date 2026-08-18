@@ -114,7 +114,6 @@ def test_unit_store_tests_start_brew_surreal() -> None:
     assert "surreal start" in makefile
 
 
-
 async def test_put_get_roundtrip(store: SurrealStore) -> None:
     episode = _episode()
     ada = _entity("Ada")
