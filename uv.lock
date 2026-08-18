@@ -2112,6 +2112,7 @@ name = "zeit"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "pydantic" },
     { name = "pydantic-ai" },
     { name = "surrealdb" },
 ]
@@ -2126,6 +2127,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "pydantic", specifier = ">=2.13" },
     { name = "pydantic-ai", specifier = ">=2.31.1" },
     { name = "surrealdb", specifier = ">=2.0.0" },
 ]
