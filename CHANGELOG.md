@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **CI actions:** checkout, setup-uv, and artifact actions now use Node 24 majors.
+
 ## [v0.1.1] - 2026-08-18
 
 ### Added
