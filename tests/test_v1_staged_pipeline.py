@@ -298,3 +298,99 @@ def test_graph_exports_and_ctor_shape() -> None:
     assert "token" not in params
     assert "logfire" not in params
     assert params["episode_window"].default == EPISODE_WINDOW
+
+
+async def test_add_triplet_skips_extract_and_persists(closing: list[Graph]) -> None:
+    models, embedder = _stack(extract=_Boom())
+    graph = _graph(models)
+    closing.append(graph)
+    result = await graph.add_triplet(
+        "Ada",
+        "works_at",
+        "Acme",
+        "Ada works at Acme.",
+        now=NOW,
+    )
+    assert result.episode is None
+    assert result.mentions == ()
+    assert [entity.name for entity in result.entities] == ["Ada", "Acme"]
+    assert len(result.facts) == 1
+    assert result.facts[0].statement == "Ada works at Acme."
+    assert result.facts[0].predicate == "works_at"
+    assert result.facts[0].subject_id == result.entities[0].uuid
+    assert result.facts[0].object_id == result.entities[1].uuid
+    assert result.facts[0].valid_at == NOW
+    assert result.facts[0].invalid_at is None
+    assert result.facts[0].expired_at is None
+    assert embedder.texts == ["Ada", "Acme", "Ada works at Acme."]
+    assert await graph.store.get(Entity, result.entities[0].uuid) == result.entities[0]
+    assert await graph.store.get(Fact, result.facts[0].uuid) == result.facts[0]
+
+
+async def test_add_triplet_uses_valid_at_and_now(closing: list[Graph]) -> None:
+    models, _ = _stack(extract=_Boom())
+    graph = _graph(models)
+    closing.append(graph)
+    result = await graph.add_triplet(
+        "Ada",
+        "works_at",
+        "Acme",
+        "Ada works at Acme.",
+        valid_at=NOW,
+        now=APRIL,
+    )
+    assert result.facts[0].valid_at == NOW
+    assert result.facts[0].created_at == APRIL
+
+
+async def test_add_triplet_resolves_and_invalidates(closing: list[Graph]) -> None:
+    models, _ = _stack(
+        extract=_Boom(),
+        invalidate=TestModel(custom_output_args={"statements": ["Ada works at Acme."]}),
+    )
+    graph = _graph(models)
+    closing.append(graph)
+    first = await graph.add_triplet(
+        "Ada",
+        "works_at",
+        "Acme",
+        "Ada works at Acme.",
+        now=NOW,
+    )
+    second = await graph.add_triplet(
+        "Ada",
+        "works_at",
+        "Birch",
+        "Ada works at Birch.",
+        valid_at=NOW,
+        now=APRIL,
+    )
+    assert first.entities[0].uuid == second.entities[0].uuid
+    assert first.entities[0].name == "Ada"
+    assert {entity.name for entity in second.entities} == {"Ada", "Birch"}
+    old = await graph.store.get(Fact, first.facts[0].uuid)
+    assert old is not None
+    assert old.invalid_at == NOW
+    assert old.expired_at == APRIL
+    assert old.valid_at == NOW
+    assert old.created_at == NOW
+    assert old.statement == "Ada works at Acme."
+    new = await graph.store.get(Fact, second.facts[0].uuid)
+    assert new == second.facts[0]
+    assert new is not None
+    assert new.invalid_at is None
+    assert new.expired_at is None
+
+
+def test_add_triplet_signature() -> None:
+    params = inspect.signature(Graph.add_triplet).parameters
+    assert list(params) == [
+        "self",
+        "subject",
+        "predicate",
+        "object",
+        "statement",
+        "valid_at",
+        "now",
+    ]
+    assert inspect.iscoroutinefunction(Graph.add_triplet)

@@ -1,4 +1,4 @@
-"""Staged ingest pipeline: context, extract, resolve, invalidate, embed, persist."""
+"""Staged ingest: add_episode runs extract; add_triplet skips it."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from pydantic_ai.models import Model
 
 from .context import EPISODE_WINDOW, recent_episodes
 from .embedder import Embedder
-from .extract import ExtractedFact, extract
+from .extract import ExtractedEntity, ExtractedFact, Extraction, extract
 from .invalidate import invalidate
 from .resolve import Resolution, resolve
 from .store import SurrealStore
@@ -57,28 +57,74 @@ class Graph:
         self, content: str, *, now: datetime | None = None
     ) -> IngestResult:
         stamp = now if now is not None else datetime.now(UTC)
+        prior = await self._prior()
+        extraction = await extract(content, model=self.models.extract, prior=prior)
+        return await self._ingest(extraction, content=content, prior=prior, now=stamp)
+
+    async def add_triplet(
+        self,
+        subject: str,
+        predicate: str,
+        object: str,
+        statement: str,
+        *,
+        valid_at: datetime | None = None,
+        now: datetime | None = None,
+    ) -> IngestResult:
+        stamp = now if now is not None else datetime.now(UTC)
+        prior = await self._prior()
+        extraction = Extraction(
+            entities=(
+                ExtractedEntity(name=subject),
+                ExtractedEntity(name=object),
+            ),
+            facts=(
+                ExtractedFact(
+                    subject=subject,
+                    predicate=predicate,
+                    object=object,
+                    statement=statement,
+                    valid_at=valid_at,
+                ),
+            ),
+        )
+        return await self._ingest(extraction, content=None, prior=prior, now=stamp)
+
+    async def _prior(self) -> tuple[str, ...]:
         prior_episodes = await recent_episodes(
             self.store, episode_window=self.episode_window
         )
-        prior = tuple(episode.content for episode in prior_episodes)
-        extraction = await extract(content, model=self.models.extract, prior=prior)
+        return tuple(episode.content for episode in prior_episodes)
+
+    async def _ingest(
+        self,
+        extraction: Extraction,
+        *,
+        content: str | None,
+        prior: Sequence[str],
+        now: datetime,
+    ) -> IngestResult:
         resolution = await resolve(
             extraction.entities,
             self.store,
             model=self.models.resolve,
             prior=prior,
-            now=stamp,
+            now=now,
         )
         await invalidate(
             extraction.facts,
             resolution,
             self.store,
             model=self.models.invalidate,
-            now=stamp,
+            now=now,
         )
-        episode = Episode(uuid=uuid4(), content=content, created_at=stamp)
-        facts = _facts(extraction.facts, resolution, now=stamp)
-        mentions = _mentions(episode, resolution)
+        episode = (
+            Episode(uuid=uuid4(), content=content, created_at=now)
+            if content is not None
+            else None
+        )
+        facts = _facts(extraction.facts, resolution, now=now)
+        mentions = _mentions(episode, resolution) if episode is not None else ()
         new_entities = await _unsaved(self.store, resolution.entities)
         await self._embed_and_put(episode, new_entities, facts, mentions)
         return IngestResult(
@@ -90,7 +136,7 @@ class Graph:
 
     async def _embed_and_put(
         self,
-        episode: Episode,
+        episode: Episode | None,
         entities: Sequence[Entity],
         facts: Sequence[Fact],
         mentions: Sequence[Mention],
@@ -101,7 +147,8 @@ class Graph:
         vectors = await self.models.embedder.embed(texts) if texts else []
         if texts and len(vectors) != len(texts):
             raise RuntimeError("embedder returned the wrong number of vectors")
-        await self.store.put(episode)
+        if episode is not None:
+            await self.store.put(episode)
         offset = 0
         for entity in entities:
             await self.store.put(entity, embedding=vectors[offset])

@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Known facts:** `Graph.add_triplet` writes a subject-predicate-object claim without extract, then resolves, invalidates, embeds, and persists.
 - **Graph ingest:** `Graph.add_episode` runs context, extract, resolve, invalidate, embed, and persist, then returns `IngestResult`.
 - **Invalidate:** a contradicting claim expires the old fact in place and keeps both world time and transaction time on the row.
 - **Resolve:** match extracted surface forms to existing entities so two names for the same thing share one uuid.

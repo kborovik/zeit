@@ -57,6 +57,7 @@ graph = Graph(
 )
 
 await graph.add_episode("Ada left Acme for Birch in March 2026.")
+await graph.add_triplet("Ada", "works_at", "Birch", "Ada works at Birch.")
 hits = await graph.search("where does Ada work?")
 ```
 
@@ -107,5 +108,5 @@ The graph API stays the same.
 
 ## Status
 
-The package is early: it ships `Graph.add_episode` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, and a last-N episode context window.
-`add_triplet`, `search`, `get_entity`, and `get_fact` are not shipped yet.
+The package is early: it ships `Graph.add_episode` and `add_triplet` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, and a last-N episode context window.
+`search`, `get_entity`, and `get_fact` are not shipped yet.
