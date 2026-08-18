@@ -14,6 +14,7 @@ from .context import EPISODE_WINDOW, recent_episodes
 from .embedder import Embedder, PydanticAIEmbedder
 from .extract import ExtractedEntity, ExtractedFact, Extraction, extract
 from .invalidate import invalidate
+from .observe import instrument
 from .resolve import Resolution, resolve
 from .store import SurrealStore
 from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
@@ -50,6 +51,7 @@ class Graph:
         self.max_concurrency = max_concurrency
         self.models = models if models is not None else ModelStack()
         self.store = SurrealStore(url, namespace, database, credentials)
+        instrument()
 
     async def aclose(self) -> None:
         await self.store.aclose()

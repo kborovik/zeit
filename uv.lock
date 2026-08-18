@@ -1271,6 +1271,7 @@ name = "zeit"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "logfire" },
     { name = "pydantic" },
     { name = "pydantic-ai-slim", extra = ["google"] },
     { name = "surrealdb" },
@@ -1279,7 +1280,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "basedpyright" },
-    { name = "logfire" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -1287,6 +1287,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "logfire", specifier = ">=4.40.0" },
     { name = "pydantic", specifier = ">=2.13" },
     { name = "pydantic-ai-slim", extras = ["google"], specifier = ">=2.31.1" },
     { name = "surrealdb", specifier = ">=2.0.0" },
@@ -1295,7 +1296,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "basedpyright", specifier = ">=1.31" },
-    { name = "logfire", specifier = ">=4.40.0" },
     { name = "pytest", specifier = ">=8.4" },
     { name = "pytest-asyncio", specifier = ">=1.1" },
     { name = "ruff", specifier = ">=0.12" },

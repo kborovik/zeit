@@ -74,7 +74,6 @@ def pytest_configure(config: pytest.Config) -> None:
     import logfire
 
     logfire.configure(service_name=E2E_SERVICE_NAME)
-    logfire.instrument_pydantic_ai()
 
 
 def surreal_credentials() -> dict[str, str]:

@@ -15,7 +15,7 @@
 
 - **E2e env file:** copy `.env.example` to `.env`; the harness loads it before start so keys need not be exported in the shell.
 - **E2e:** `pytest -m e2e` ingests an org-chart SyntheticWorld against brew SurrealDB with live Gemini; the harness configures Logfire at process start; pytest asserts the graph only.
-- **Logfire traces:** extract, resolve, invalidate, and embed calls emit OpenTelemetry spans so they appear in Logfire when the caller has configured it; `Graph` does not take a token.
+- **Logfire traces:** the library instruments PydanticAI so extract, resolve, invalidate, and embed calls emit OpenTelemetry spans after the caller configures Logfire; the caller does not call `logfire.instrument_pydantic_ai`; `Graph` does not take a token.
 - **Hybrid search:** `Graph.search` embeds the query, fuses vector and full-text ranks with reciprocal rank fusion, expands one hop, and defaults to facts that are valid now.
 - **Uuid getters:** `Graph.get_entity` and `Graph.get_fact` return a stored record or `None`.
 - **Known facts:** `Graph.add_triplet` writes a subject-predicate-object claim without extract, then resolves, invalidates, embeds, and persists.

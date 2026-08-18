@@ -74,6 +74,12 @@ def test_runtime_dep_is_pydantic_ai_slim_google() -> None:
         assert extra not in spec.lower()
 
 
+def test_runtime_dep_includes_logfire() -> None:
+    deps = _runtime_deps()
+    logfire = [item for item in deps if item.startswith("logfire")]
+    assert len(logfire) == 1
+
+
 def test_library_does_not_own_logfire_or_model_token() -> None:
     params = inspect.signature(Graph.__init__).parameters
     assert "token" not in params

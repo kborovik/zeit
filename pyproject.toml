@@ -11,12 +11,12 @@ dependencies = [
     "pydantic-ai-slim[google]>=2.31.1",
     "pydantic>=2.13",
     "surrealdb>=2.0.0",
+    "logfire>=4.40.0",
 ]
 
 [dependency-groups]
 dev = [
     "basedpyright>=1.31",
-    "logfire>=4.40.0",
     "pytest>=8.4",
     "pytest-asyncio>=1.1",
     "ruff>=0.12",

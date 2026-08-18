@@ -121,6 +121,8 @@ import logfire
 logfire.configure()
 ```
 
+zeit instruments PydanticAI after that, so you do not call `logfire.instrument_pydantic_ai`.
+
 Default Gemini models read `GEMINI_API_KEY`.
 Swap the embedder if you want.
 The graph API stays the same.

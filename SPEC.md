@@ -61,7 +61,7 @@ T16|x|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
 T17|x|add e2e: brew `surreal` fixture + org-chart SyntheticWorld + live Gemini + process-start Logfire + AGENTS.md MCP recipe; pytest asserts graph only|V2,V7,V8,V9,V10,I.env,I.cmd,I.agents
 T18|x|add `.env.example` + e2e read `.env` before start|I.env,V7
 T19|x|swap unit store tests off `mem://` 2.x onto brew SurrealDB ≥3; schema FULLTEXT only; drop SEARCH fallback|V8,I.cmd
-T20|.|library instrument PydanticAI so every LLM call emits Logfire span after caller configure; caller ! need instrument_pydantic_ai; ! token ! configure|V7,I.env,I.pkg
+T20|x|library instrument PydanticAI so every LLM call emits Logfire span after caller configure; caller ! need instrument_pydantic_ai; ! token ! configure|V7,I.env,I.pkg
 
 ## §B BUGS
 

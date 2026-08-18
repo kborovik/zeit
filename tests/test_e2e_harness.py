@@ -143,7 +143,7 @@ def test_e2e_configures_logfire_at_process_start() -> None:
     assert "logfire.configure" in source
     assert "service_name=E2E_SERVICE_NAME" in source
     assert 'E2E_SERVICE_NAME = "zeit-e2e"' in world
-    assert "logfire.instrument_pydantic_ai" in source
+    assert "logfire.instrument_pydantic_ai" not in source
     params = inspect.signature(Graph.__init__).parameters
     assert "token" not in params
     assert "logfire" not in params
