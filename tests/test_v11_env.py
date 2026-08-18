@@ -83,11 +83,10 @@ def test_library_does_not_own_logfire_or_model_token() -> None:
         assert "LOGFIRE_TOKEN" not in path.read_text(encoding="utf-8")
 
 
-def test_default_gemini_path_reads_google_or_gemini_key() -> None:
+def test_default_gemini_path_reads_gemini_key() -> None:
     assert DEFAULT_MODEL.startswith("google:")
     assert DEFAULT_EMBEDDER_MODEL.startswith("google:")
     from pydantic_ai.providers import google as google_provider
 
     source = Path(google_provider.__file__).read_text(encoding="utf-8")
-    assert "GOOGLE_API_KEY" in source
     assert "GEMINI_API_KEY" in source

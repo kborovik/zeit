@@ -46,9 +46,7 @@ def load_repo_env(path: Path | None = None) -> None:
 
 
 def has_live_keys() -> bool:
-    has_gemini = bool(
-        os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-    )
+    has_gemini = bool(os.environ.get("GEMINI_API_KEY"))
     has_logfire = bool(os.environ.get("LOGFIRE_TOKEN"))
     return has_gemini and has_logfire
 
@@ -97,7 +95,7 @@ def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
 @pytest.fixture(scope="session")
 def surreal_url() -> Iterator[str]:
     if not has_live_keys():
-        pytest.skip("e2e needs GEMINI_API_KEY or GOOGLE_API_KEY, and LOGFIRE_TOKEN")
+        pytest.skip("e2e needs GEMINI_API_KEY and LOGFIRE_TOKEN")
     existing = os.environ.get("SURREAL_URL")
     if existing:
         yield existing

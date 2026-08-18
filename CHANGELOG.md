@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Gemini key:** default Gemini path and e2e read `GEMINI_API_KEY` only.
 - **Default models:** `Graph` no longer requires a `ModelStack`; extract, resolve, and invalidate default to `google:gemini-3.7-flash`; the embedder defaults to `google:gemini-embedding-2`.
 - **PydanticAI slim:** runtime dependency is `pydantic-ai-slim[google]` only; unused extras (CLI, OpenAI, Anthropic) are dropped.
 

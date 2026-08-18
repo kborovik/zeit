@@ -37,7 +37,7 @@ def test_e2e_marker_and_command() -> None:
 def test_e2e_skips_without_live_keys() -> None:
     source = _source(CONFTEST)
     assert "GEMINI_API_KEY" in source
-    assert "GOOGLE_API_KEY" in source
+    assert "GOOGLE_API_KEY" not in source
     assert "LOGFIRE_TOKEN" in source
     assert "SURREAL_URL" in source
     assert "brew install surrealdb/tap/surreal" in source
@@ -48,7 +48,7 @@ def test_e2e_skips_without_live_keys() -> None:
 def test_env_example_names_keys() -> None:
     text = _source(ENV_EXAMPLE)
     assert "GEMINI_API_KEY" in text
-    assert "GOOGLE_API_KEY" in text
+    assert "GOOGLE_API_KEY" not in text
     assert "LOGFIRE_TOKEN" in text
     assert "SURREAL_URL" in text
 
@@ -81,7 +81,7 @@ def test_e2e_reads_repo_env_before_start() -> None:
 
 def test_e2e_does_not_own_keys_after_load() -> None:
     source = _source(CONFTEST)
-    for key in ("GEMINI_API_KEY", "GOOGLE_API_KEY", "LOGFIRE_TOKEN"):
+    for key in ("GEMINI_API_KEY", "LOGFIRE_TOKEN"):
         assert f'os.environ["{key}"]' not in source
         assert f"os.environ['{key}']" not in source
     assert "logfire.configure(service_name=E2E_SERVICE_NAME)" in source
