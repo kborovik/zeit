@@ -1,10 +1,8 @@
 import ast
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
-import pytest
 from surrealdb import AsyncSurreal
 
 from zeit import Entity, Episode, Fact, Mention, Store, SurrealStore
@@ -15,13 +13,6 @@ LATER = datetime(2026, 4, 1, tzinfo=UTC)
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src" / "zeit"
 BANNED_MODULES = frozenset({"neo4j", "falkordb", "kuzu", "neptune"})
-
-
-@pytest.fixture
-async def store() -> AsyncIterator[SurrealStore]:
-    impl = SurrealStore("mem://", "app", "memory")
-    yield impl
-    await impl.aclose()
 
 
 def _episode() -> Episode:
@@ -63,7 +54,7 @@ def test_store_exports_from_zeit() -> None:
 
 
 def test_surreal_store_satisfies_protocol() -> None:
-    impl = SurrealStore("mem://", "app", "memory")
+    impl = SurrealStore("ws://127.0.0.1:8000/rpc", "app", "memory")
     assert isinstance(impl, Store)
 
 
@@ -100,10 +91,27 @@ def test_schema_is_surrealql() -> None:
     assert "DEFINE INDEX OVERWRITE fact_statement_ft" in SCHEMA
     assert "DEFINE FIELD attributes ON entity TYPE object FLEXIBLE" in SCHEMA
     assert "FLEXIBLE TYPE" not in SCHEMA
-    assert "SEARCH ANALYZER zeit BM25" in SCHEMA
+    assert "FULLTEXT ANALYZER zeit BM25" in SCHEMA
+    assert "SEARCH ANALYZER" not in SCHEMA
     source = (SRC / "store.py").read_text(encoding="utf-8")
-    assert "FULLTEXT ANALYZER zeit BM25" in source
-    assert "_search_clause_rejected" in source
+    assert "SEARCH ANALYZER" not in source
+    assert "_search_clause_rejected" not in source
+    assert "_schema_sql" not in source
+
+
+def test_unit_tests_do_not_use_mem_engine() -> None:
+    banned = "mem:" + "//"
+    for path in (ROOT / "tests").rglob("*.py"):
+        assert banned not in path.read_text(encoding="utf-8")
+
+
+def test_unit_store_tests_start_brew_surreal() -> None:
+    conftest = (ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "def brew_surreal_url" in conftest
+    assert "brew install surrealdb/tap/surreal" in conftest
+    assert makefile.count("$(maybe_start_surreal)") >= 2
+    assert "surreal start" in makefile
 
 
 async def test_put_get_roundtrip(store: SurrealStore) -> None:

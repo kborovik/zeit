@@ -9,6 +9,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from conftest import open_graph
 from zeit import Entity, Fact, Graph, ModelStack, SearchHits
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
@@ -61,12 +62,10 @@ def _fact(
     )
 
 
-def _graph(embedder: _RecordEmbedder | None = None) -> Graph:
+def _graph(url: str, embedder: _RecordEmbedder | None = None) -> Graph:
     recorded = embedder if embedder is not None else _RecordEmbedder()
-    return Graph(
-        "mem://",
-        "app",
-        "memory",
+    return open_graph(
+        url,
         models=ModelStack(
             extract=_Boom(),
             resolve=_Boom(),
@@ -102,9 +101,10 @@ def _ids(records: tuple[Entity, ...] | tuple[Fact, ...]) -> set[UUID]:
 
 async def test_search_embeds_query_and_fuses_text_and_vector(
     closing: list[Graph],
+    brew_surreal_url: str,
 ) -> None:
     embedder = _RecordEmbedder([1.0, 0.0])
-    graph = _graph(embedder)
+    graph = _graph(brew_surreal_url, embedder)
     closing.append(graph)
     ada = _entity("Ada")
     acme = _entity("Acme")
@@ -129,8 +129,9 @@ async def test_search_embeds_query_and_fuses_text_and_vector(
 
 async def test_search_valid_now_default_excludes_expired(
     closing: list[Graph],
+    brew_surreal_url: str,
 ) -> None:
-    graph = _graph()
+    graph = _graph(brew_surreal_url)
     closing.append(graph)
     ada = _entity("Ada")
     acme = _entity("Acme")
@@ -158,8 +159,9 @@ async def test_search_valid_now_default_excludes_expired(
 
 async def test_search_one_hop_expands_entity_and_fact(
     closing: list[Graph],
+    brew_surreal_url: str,
 ) -> None:
-    graph = _graph()
+    graph = _graph(brew_surreal_url)
     closing.append(graph)
     ada = _entity("Ada")
     acme = _entity("Acme")
@@ -181,8 +183,10 @@ async def test_search_one_hop_expands_entity_and_fact(
     assert corp.uuid in _ids(hits.entities)
 
 
-async def test_get_entity_and_get_fact(closing: list[Graph]) -> None:
-    graph = _graph()
+async def test_get_entity_and_get_fact(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
+    graph = _graph(brew_surreal_url)
     closing.append(graph)
     ada = _entity("Ada")
     acme = _entity("Acme")

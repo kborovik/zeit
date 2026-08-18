@@ -1,8 +1,6 @@
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from uuid import uuid4
 
-import pytest
 from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import (
     ModelMessage,
@@ -14,17 +12,11 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from conftest import open_store
 from zeit import BoundEntity, Entity, Resolution, SurrealStore, resolve
 from zeit.extract import ExtractedEntity
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
-
-
-@pytest.fixture
-async def store() -> AsyncIterator[SurrealStore]:
-    impl = SurrealStore("mem://", "app", "memory")
-    yield impl
-    await impl.aclose()
 
 
 def _entity(name: str = "Ada") -> Entity:
@@ -129,10 +121,12 @@ async def test_empty_extract_skips_model(store: SurrealStore) -> None:
     assert await resolve((), store, model=_Boom(), now=NOW) == Resolution()
 
 
-async def test_other_database_entities_are_not_candidates() -> None:
+async def test_other_database_entities_are_not_candidates(
+    brew_surreal_url: str,
+) -> None:
     ada = _entity("Ada")
-    memory = SurrealStore("mem://", "app", "memory")
-    other = SurrealStore("mem://", "app", "other")
+    memory = open_store(brew_surreal_url)
+    other = open_store(brew_surreal_url)
     try:
         await other.put(ada)
         result = await resolve(

@@ -13,6 +13,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from conftest import open_graph
 from zeit import Entity, Fact, Graph, IngestResult, ModelStack
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
@@ -71,8 +72,8 @@ def _stack(
     )
 
 
-def _graph(models: ModelStack, *, database: str = "memory") -> Graph:
-    return Graph("mem://", "app", database, models=models)
+def _graph(url: str, models: ModelStack, *, database: str | None = None) -> Graph:
+    return open_graph(url, models=models, database=database)
 
 
 @pytest.fixture
@@ -94,13 +95,16 @@ def _named(result: IngestResult, name: str) -> Entity:
     raise AssertionError(f"missing entity {name!r}")
 
 
-async def test_contradiction_expires_fact_without_drop(closing: list[Graph]) -> None:
+async def test_contradiction_expires_fact_without_drop(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     graph = _graph(
+        brew_surreal_url,
         _stack(
             invalidate=TestModel(
                 custom_output_args={"statements": ["Ada works at Acme."]}
             ),
-        )
+        ),
     )
     closing.append(graph)
     first = await graph.add_triplet(
@@ -132,12 +136,15 @@ async def test_contradiction_expires_fact_without_drop(closing: list[Graph]) -> 
     assert new.expired_at is None
 
 
-async def test_alias_surface_merges_to_one_entity_uuid(closing: list[Graph]) -> None:
+async def test_alias_surface_merges_to_one_entity_uuid(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     graph = _graph(
+        brew_surreal_url,
         _stack(
             resolve=_MergeAda(),
             invalidate=TestModel(custom_output_args={"statements": []}),
-        )
+        ),
     )
     closing.append(graph)
     first = await graph.add_triplet(
@@ -162,9 +169,11 @@ async def test_alias_surface_merges_to_one_entity_uuid(closing: list[Graph]) -> 
     assert await graph.get_entity(ada.uuid) == ada
 
 
-async def test_other_graph_database_is_invisible(closing: list[Graph]) -> None:
-    memory = _graph(_stack(), database="memory")
-    other = _graph(_stack(), database="other")
+async def test_other_graph_database_is_invisible(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
+    memory = _graph(brew_surreal_url, _stack())
+    other = _graph(brew_surreal_url, _stack())
     closing.extend((memory, other))
     result = await memory.add_triplet(
         "Ada",
@@ -176,8 +185,7 @@ async def test_other_graph_database_is_invisible(closing: list[Graph]) -> None:
     ada = _named(result, "Ada")
     fact = result.facts[0]
     assert memory.store.namespace == "app"
-    assert memory.store.database == "memory"
-    assert other.store.database == "other"
+    assert memory.store.database != other.store.database
     assert await memory.get_entity(ada.uuid) == ada
     assert await memory.get_fact(fact.uuid) == fact
     assert await other.get_entity(ada.uuid) is None
@@ -189,13 +197,15 @@ async def test_other_graph_database_is_invisible(closing: list[Graph]) -> None:
 
 async def test_search_valid_now_excludes_expired_after_ingest(
     closing: list[Graph],
+    brew_surreal_url: str,
 ) -> None:
     graph = _graph(
+        brew_surreal_url,
         _stack(
             invalidate=TestModel(
                 custom_output_args={"statements": ["Ada works at Acme."]}
             ),
-        )
+        ),
     )
     closing.append(graph)
     first = await graph.add_triplet(

@@ -15,6 +15,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from conftest import open_graph
 from zeit import EPISODE_WINDOW, Entity, Episode, Fact, Graph, Mention, ModelStack
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
@@ -142,10 +143,10 @@ def _stack(
     )
 
 
-def _graph(models: ModelStack, *, episode_window: int = EPISODE_WINDOW) -> Graph:
-    return Graph(
-        "mem://", "app", "memory", models=models, episode_window=episode_window
-    )
+def _graph(
+    url: str, models: ModelStack, *, episode_window: int = EPISODE_WINDOW
+) -> Graph:
+    return open_graph(url, models=models, episode_window=episode_window)
 
 
 @pytest.fixture
@@ -156,9 +157,11 @@ async def closing() -> AsyncIterator[list[Graph]]:
         await graph.aclose()
 
 
-async def test_add_episode_runs_staged_pipeline(closing: list[Graph]) -> None:
+async def test_add_episode_runs_staged_pipeline(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, embedder = _stack()
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     result = await graph.add_episode("Ada works at Acme.", now=NOW)
     assert result.episode is not None
@@ -182,9 +185,11 @@ async def test_add_episode_runs_staged_pipeline(closing: list[Graph]) -> None:
     assert await graph.store.get(Mention, result.mentions[0].uuid) == result.mentions[0]
 
 
-async def test_add_episode_feeds_prior_context_to_extract(closing: list[Graph]) -> None:
+async def test_add_episode_feeds_prior_context_to_extract(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, _ = _stack()
-    graph = _graph(models, episode_window=2)
+    graph = _graph(brew_surreal_url, models, episode_window=2)
     closing.append(graph)
     await graph.store.put(
         Episode(uuid=uuid4(), content="Ada joined Acme.", created_at=NOW)
@@ -204,7 +209,9 @@ async def test_add_episode_feeds_prior_context_to_extract(closing: list[Graph]) 
     assert "Ada works at Acme." in part.content
 
 
-async def test_add_episode_resolves_and_invalidates(closing: list[Graph]) -> None:
+async def test_add_episode_resolves_and_invalidates(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     extract = _ScriptedExtract(
         [
             (
@@ -229,7 +236,7 @@ async def test_add_episode_resolves_and_invalidates(closing: list[Graph]) -> Non
         extract=extract,
         invalidate=TestModel(custom_output_args={"statements": ["Ada works at Acme."]}),
     )
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     first = await graph.add_episode("Ada works at Acme.", now=NOW)
     second = await graph.add_episode("Ada left Acme for Birch in March.", now=APRIL)
@@ -252,13 +259,14 @@ async def test_add_episode_resolves_and_invalidates(closing: list[Graph]) -> Non
 
 async def test_add_episode_empty_extract_still_persists_episode(
     closing: list[Graph],
+    brew_surreal_url: str,
 ) -> None:
     embedder = _RecordEmbedder()
     models, _ = _stack(
         extract=TestModel(custom_output_args={"entities": []}),
         embedder=embedder,
     )
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     result = await graph.add_episode("hmm.", now=NOW)
     assert result.episode is not None
@@ -270,14 +278,16 @@ async def test_add_episode_empty_extract_still_persists_episode(
     assert await graph.store.get(Episode, result.episode.uuid) == result.episode
 
 
-async def test_add_episode_drops_facts_with_unbound_names(closing: list[Graph]) -> None:
+async def test_add_episode_drops_facts_with_unbound_names(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, _ = _stack(
         extract=_ExtractModel(
             _entities("Ada"),
             [_fact_args("Ada", "works_at", "Acme", "Ada works at Acme.")],
         )
     )
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     result = await graph.add_episode("Ada works at Acme.", now=NOW)
     assert [entity.name for entity in result.entities] == ["Ada"]
@@ -301,9 +311,11 @@ def test_graph_exports_and_ctor_shape() -> None:
     assert params["episode_window"].default == EPISODE_WINDOW
 
 
-async def test_add_triplet_skips_extract_and_persists(closing: list[Graph]) -> None:
+async def test_add_triplet_skips_extract_and_persists(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, embedder = _stack(extract=_Boom())
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     result = await graph.add_triplet(
         "Ada",
@@ -328,9 +340,11 @@ async def test_add_triplet_skips_extract_and_persists(closing: list[Graph]) -> N
     assert await graph.store.get(Fact, result.facts[0].uuid) == result.facts[0]
 
 
-async def test_add_triplet_uses_valid_at_and_now(closing: list[Graph]) -> None:
+async def test_add_triplet_uses_valid_at_and_now(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, _ = _stack(extract=_Boom())
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     result = await graph.add_triplet(
         "Ada",
@@ -344,12 +358,14 @@ async def test_add_triplet_uses_valid_at_and_now(closing: list[Graph]) -> None:
     assert result.facts[0].created_at == APRIL
 
 
-async def test_add_triplet_resolves_and_invalidates(closing: list[Graph]) -> None:
+async def test_add_triplet_resolves_and_invalidates(
+    closing: list[Graph], brew_surreal_url: str
+) -> None:
     models, _ = _stack(
         extract=_Boom(),
         invalidate=TestModel(custom_output_args={"statements": ["Ada works at Acme."]}),
     )
-    graph = _graph(models)
+    graph = _graph(brew_surreal_url, models)
     closing.append(graph)
     first = await graph.add_triplet(
         "Ada",

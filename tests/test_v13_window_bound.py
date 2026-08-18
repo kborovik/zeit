@@ -1,4 +1,3 @@
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
@@ -7,17 +6,11 @@ from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import ModelRequest, UserPromptPart
 from pydantic_ai.models.test import TestModel
 
+from conftest import open_store
 from zeit import EPISODE_WINDOW, Episode, SurrealStore, recent_episodes
 from zeit.extract import extract_entities
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
-
-
-@pytest.fixture
-async def store() -> AsyncIterator[SurrealStore]:
-    impl = SurrealStore("mem://", "app", "memory")
-    yield impl
-    await impl.aclose()
 
 
 def _episode(offset: int, content: str) -> Episode:
@@ -78,9 +71,9 @@ async def test_recent_episodes_rejects_negative_window(store: SurrealStore) -> N
         await recent_episodes(store, episode_window=-1)
 
 
-async def test_recent_episodes_stay_in_one_database() -> None:
-    memory = SurrealStore("mem://", "app", "memory")
-    other = SurrealStore("mem://", "app", "other")
+async def test_recent_episodes_stay_in_one_database(brew_surreal_url: str) -> None:
+    memory = open_store(brew_surreal_url)
+    other = open_store(brew_surreal_url)
     try:
         episode = _episode(0, "Ada joined Acme.")
         await memory.put(episode)

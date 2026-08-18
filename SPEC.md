@@ -60,7 +60,7 @@ T15|x|set ModelStack defaults `google:gemini-3.7-flash` + `google:gemini-embeddi
 T16|x|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
 T17|x|add e2e: brew `surreal` fixture + org-chart SyntheticWorld + live Gemini + process-start Logfire + AGENTS.md MCP recipe; pytest asserts graph only|V2,V7,V8,V9,V10,I.env,I.cmd,I.agents
 T18|x|add `.env.example` + e2e read `.env` before start|I.env,V7
-T19|.|swap unit store tests off `mem://` 2.x onto brew SurrealDB ≥3; schema FULLTEXT only; drop SEARCH fallback|V8,I.cmd
+T19|x|swap unit store tests off `mem://` 2.x onto brew SurrealDB ≥3; schema FULLTEXT only; drop SEARCH fallback|V8,I.cmd
 
 ## §B BUGS
 

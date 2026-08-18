@@ -6,7 +6,8 @@ from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import ModelRequest, UserPromptPart
 from pydantic_ai.models.test import TestModel
 
-from zeit import BoundEntity, Entity, Fact, Resolution, SurrealStore
+from conftest import open_store
+from zeit import BoundEntity, Entity, Fact, Resolution
 from zeit.extract import (
     ENTITY_INSTRUCTIONS,
     FACT_INSTRUCTIONS,
@@ -111,8 +112,10 @@ async def test_fact_agent_sends_first_party_instructions() -> None:
     )
 
 
-async def test_resolve_agent_sends_first_party_instructions() -> None:
-    store = SurrealStore("mem://", "app", "memory")
+async def test_resolve_agent_sends_first_party_instructions(
+    brew_surreal_url: str,
+) -> None:
+    store = open_store(brew_surreal_url)
     try:
         await store.put(
             Entity(uuid=uuid4(), name="Ada", created_at=NOW),
@@ -136,7 +139,9 @@ async def test_resolve_agent_sends_first_party_instructions() -> None:
     assert "Ada" in part.content
 
 
-async def test_invalidate_agent_sends_first_party_instructions() -> None:
+async def test_invalidate_agent_sends_first_party_instructions(
+    brew_surreal_url: str,
+) -> None:
     ada = Entity(uuid=uuid4(), name="Ada", created_at=NOW)
     acme = Entity(uuid=uuid4(), name="Acme", created_at=NOW)
     birch = Entity(uuid=uuid4(), name="Birch", created_at=NOW)
@@ -151,7 +156,7 @@ async def test_invalidate_agent_sends_first_party_instructions() -> None:
         created_at=NOW,
         expired_at=None,
     )
-    store = SurrealStore("mem://", "app", "memory")
+    store = open_store(brew_surreal_url)
     try:
         await store.put(ada)
         await store.put(acme)

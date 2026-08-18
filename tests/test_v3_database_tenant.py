@@ -1,21 +1,12 @@
-from collections.abc import AsyncIterator
 from dataclasses import fields
 from datetime import UTC, datetime
 from uuid import uuid4
 
-import pytest
-
+from conftest import open_store
 from zeit import Entity, Episode, Fact, Mention, SurrealStore
 from zeit.store import SCHEMA
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
-
-
-@pytest.fixture
-async def store() -> AsyncIterator[SurrealStore]:
-    impl = SurrealStore("mem://", "app", "memory")
-    yield impl
-    await impl.aclose()
 
 
 def test_persistable_types_have_no_tenant_field() -> None:
@@ -28,12 +19,12 @@ def test_schema_has_no_tenant_field() -> None:
 
 
 def test_store_binds_one_namespace_and_database() -> None:
-    impl = SurrealStore("mem://", "app", "memory")
+    impl = SurrealStore("ws://127.0.0.1:8000/rpc", "app", "memory")
     assert impl.namespace == "app"
     assert impl.database == "memory"
 
 
-async def test_other_database_is_invisible() -> None:
+async def test_other_database_is_invisible(brew_surreal_url: str) -> None:
     fact = Fact(
         uuid=uuid4(),
         subject_id=uuid4(),
@@ -47,8 +38,8 @@ async def test_other_database_is_invisible() -> None:
     )
     ada = Entity(uuid=fact.subject_id, name="Ada", created_at=NOW)
     acme = Entity(uuid=fact.object_id, name="Acme", created_at=NOW)
-    memory = SurrealStore("mem://", "app", "memory")
-    other = SurrealStore("mem://", "app", "other")
+    memory = open_store(brew_surreal_url)
+    other = open_store(brew_surreal_url)
     try:
         await memory.put(ada)
         await memory.put(acme)

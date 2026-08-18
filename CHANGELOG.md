@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Unit store tests:** unit tests run against brew SurrealDB 3 or newer with a FULLTEXT schema; the 2.x `mem://` engine and SEARCH fallback are dropped.
 - **E2e SurrealDB:** `gmake e2e` starts local SurrealDB on `127.0.0.1:8000` when the default URL is used and nothing is listening.
 - **Surreal URL:** e2e `SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`; leave it empty to start a brew instance.
 - **Gemini key:** default Gemini path and e2e read `GEMINI_API_KEY` only.

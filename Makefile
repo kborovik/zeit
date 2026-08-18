@@ -41,19 +41,9 @@ format: .venv ## ruff format + ruff check --fix
 	$(call header,Running ruff check --fix)
 	uv run ruff check --fix
 
-test: .venv ## Run pytest (exclude e2e)
-	$(call header,Running pytest)
-	uv run pytest -m "not e2e"
-
-e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire)
-	started=
-	cleanup() {
-		if [[ -n "$${started:-}" ]]; then
-			kill "$$started" 2>/dev/null || true
-			wait "$$started" 2>/dev/null || true
-		fi
-	}
-	trap cleanup EXIT
+# Start brew SurrealDB on 127.0.0.1:8000 when the default URL is used
+# and nothing is listening. Caller must set `started=` and trap cleanup.
+define maybe_start_surreal
 	case "$${SURREAL_URL-ws://127.0.0.1:8000/rpc}" in
 	ws://127.0.0.1:8000/rpc|ws://localhost:8000/rpc)
 		if ! (echo >/dev/tcp/127.0.0.1/8000) >/dev/null 2>&1; then
@@ -81,6 +71,28 @@ e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire)
 		fi
 		;;
 	esac
+endef
+
+define surreal_cleanup
+	if [[ -n "$${started:-}" ]]; then
+		kill "$$started" 2>/dev/null || true
+		wait "$$started" 2>/dev/null || true
+	fi
+endef
+
+test: .venv ## Run pytest (exclude e2e)
+	started=
+	cleanup() { $(surreal_cleanup); }
+	trap cleanup EXIT
+	$(maybe_start_surreal)
+	$(call header,Running pytest)
+	uv run pytest -m "not e2e"
+
+e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire)
+	started=
+	cleanup() { $(surreal_cleanup); }
+	trap cleanup EXIT
+	$(maybe_start_surreal)
 	$(call header,Running pytest -m e2e)
 	uv run pytest -m e2e
 

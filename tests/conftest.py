@@ -1,4 +1,4 @@
-"""E2e fixtures: brew SurrealDB, process-start Logfire, org-chart world."""
+"""Brew SurrealDB ≥3 fixtures, e2e Logfire, org-chart world."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import subprocess
 import time
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from urllib.parse import urlparse
 from uuid import uuid4
 
 import pytest
@@ -20,7 +21,7 @@ from e2e_world import (
     IngestedWorld,
     SyntheticWorld,
 )
-from zeit import Graph, IngestResult
+from zeit import Graph, IngestResult, ModelStack, SurrealStore
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REPO_ENV = REPO_ROOT / ".env"
@@ -100,14 +101,18 @@ def _wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
     raise RuntimeError(f"surreal did not listen on {host}:{port}")
 
 
-@pytest.fixture(scope="session")
-def surreal_url() -> Iterator[str]:
-    if not has_live_keys():
-        pytest.skip("e2e needs GEMINI_API_KEY and LOGFIRE_TOKEN")
-    existing = resolve_surreal_url()
-    if existing:
-        yield existing
-        return
+def _url_listening(url: str) -> bool:
+    parsed = urlparse(url)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 8000
+    try:
+        with socket.create_connection((host, port), timeout=0.2):
+            return True
+    except OSError:
+        return False
+
+
+def _start_brew_surreal() -> Iterator[str]:
     binary = shutil.which("surreal")
     if binary is None:
         pytest.skip("install SurrealDB: brew install surrealdb/tap/surreal")
@@ -140,6 +145,72 @@ def surreal_url() -> Iterator[str]:
         except subprocess.TimeoutExpired:
             proc.kill()
             proc.wait(timeout=5)
+
+
+def _managed_surreal_url() -> Iterator[str]:
+    existing = resolve_surreal_url()
+    if existing is None:
+        yield from _start_brew_surreal()
+        return
+    if _url_listening(existing):
+        yield existing
+        return
+    if "SURREAL_URL" in os.environ and os.environ["SURREAL_URL"].strip():
+        yield existing
+        return
+    yield from _start_brew_surreal()
+
+
+def open_store(
+    url: str, *, namespace: str = "app", database: str | None = None
+) -> SurrealStore:
+    return SurrealStore(
+        url,
+        namespace,
+        database if database is not None else f"t_{uuid4().hex}",
+        surreal_credentials(),
+    )
+
+
+def open_graph(
+    url: str,
+    *,
+    namespace: str = "app",
+    database: str | None = None,
+    models: ModelStack | None = None,
+    episode_window: int | None = None,
+) -> Graph:
+    name = database if database is not None else f"t_{uuid4().hex}"
+    if episode_window is None:
+        return Graph(url, namespace, name, surreal_credentials(), models=models)
+    return Graph(
+        url,
+        namespace,
+        name,
+        surreal_credentials(),
+        models=models,
+        episode_window=episode_window,
+    )
+
+
+@pytest.fixture(scope="session")
+def brew_surreal_url() -> Iterator[str]:
+    yield from _managed_surreal_url()
+
+
+@pytest.fixture
+async def store(brew_surreal_url: str) -> AsyncIterator[SurrealStore]:
+    impl = open_store(brew_surreal_url)
+    yield impl
+    await impl.aclose()
+
+
+@pytest.fixture(scope="session")
+def surreal_url(request: pytest.FixtureRequest) -> str:
+    if not has_live_keys():
+        pytest.skip("e2e needs GEMINI_API_KEY and LOGFIRE_TOKEN")
+    url: str = request.getfixturevalue("brew_surreal_url")
+    return url
 
 
 @pytest.fixture(scope="module")

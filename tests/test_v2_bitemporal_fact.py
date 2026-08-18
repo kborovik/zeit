@@ -1,8 +1,6 @@
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 from uuid import uuid4
 
-import pytest
 from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import (
     ModelMessage,
@@ -14,19 +12,13 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from conftest import open_store
 from zeit import BoundEntity, Entity, Fact, Resolution, SurrealStore, invalidate
 from zeit.extract import ExtractedFact
 
 JAN = datetime(2026, 1, 1, tzinfo=UTC)
 MARCH = datetime(2026, 3, 1, tzinfo=UTC)
 APRIL = datetime(2026, 4, 1, tzinfo=UTC)
-
-
-@pytest.fixture
-async def store() -> AsyncIterator[SurrealStore]:
-    impl = SurrealStore("mem://", "app", "memory")
-    yield impl
-    await impl.aclose()
 
 
 def _entity(name: str) -> Entity:
@@ -207,13 +199,13 @@ async def test_already_expired_fact_is_not_a_candidate(store: SurrealStore) -> N
     assert stored == old
 
 
-async def test_other_database_facts_are_not_expired() -> None:
+async def test_other_database_facts_are_not_expired(brew_surreal_url: str) -> None:
     ada = _entity("Ada")
     acme = _entity("Acme")
     birch = _entity("Birch")
     old = _fact(ada, acme)
-    memory = SurrealStore("mem://", "app", "memory")
-    other = SurrealStore("mem://", "app", "other")
+    memory = open_store(brew_surreal_url)
+    other = open_store(brew_surreal_url)
     try:
         await _seed(other, ada, acme, birch, old)
         expired = await invalidate(

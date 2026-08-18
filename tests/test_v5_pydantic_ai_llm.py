@@ -36,7 +36,7 @@ def test_model_stack_defaults_to_gemini_flash() -> None:
 
 
 async def test_graph_model_stack_is_optional() -> None:
-    graph = Graph("mem://", "app", "defaults")
+    graph = Graph("ws://127.0.0.1:8000/rpc", "app", "defaults")
     try:
         assert graph.models.extract == DEFAULT_MODEL
         assert graph.models.resolve == DEFAULT_MODEL
