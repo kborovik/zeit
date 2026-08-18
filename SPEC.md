@@ -21,6 +21,7 @@ implement bi-temporal ingest-resolve-invalidate-hybrid-search as Python ≥3.14 
 - env: caller configures Logfire at process start; library instruments PydanticAI; caller ! need logfire.instrument_pydantic_ai; library ! own token; library ! call logfire.configure; default Gemini path reads `GEMINI_API_KEY`; e2e reads repo `.env` before start; `.env.example` names `GEMINI_API_KEY` + `LOGFIRE_TOKEN` + `SURREAL_URL`; e2e ! those keys after load; `SURREAL_URL` default `ws://127.0.0.1:8000/rpc`; empty → brew start; `.env` ! committed
 - cmd: `uv` env; `ruff check`/`ruff format`; `basedpyright` strict; SurrealDB ≥3; `brew install surrealdb/tap/surreal`; unit store tests + e2e start brew `surreal`; `pytest -m e2e`; tag `v*` → check + build + GH Release + `uv publish` PyPI `zeit-graph`
 - agents: AGENTS.md Logfire MCP recipe — after `pytest -m e2e` query `query_schema_reference` then `query_run` for PydanticAI spans in e2e window by service name harness set at process start; pytest ! query Logfire HTTP
+- readme: README.md after pitch → LLM-agent how-to use zeit as lib; ctor Graph + add_episode/add_triplet/search/get_entity/get_fact; bi-temporal clocks; ModelStack?; Logfire caller-configure; GEMINI_API_KEY; SurrealDB one Graph = one (namespace, database); ! maintainer run/release/status
 
 ## §V INVARIANTS
 
@@ -63,6 +64,7 @@ T18|x|add `.env.example` + e2e read `.env` before start|I.env,V7
 T19|x|swap unit store tests off `mem://` 2.x onto brew SurrealDB ≥3; schema FULLTEXT only; drop SEARCH fallback|V8,I.cmd
 T20|x|library instrument PydanticAI so every LLM call emits Logfire span after caller configure; caller ! need instrument_pydantic_ai; ! token ! configure|V7,I.env,I.pkg
 T21|x|add tag `v*` publish PyPI `zeit-graph` via trusted publishing|I.pkg,I.cmd
+T22|.|rewrite README.md from `## Intended shape` inclusive → LLM-agent how-to use zeit; drop Run from this repo, Release, How it runs, Status|V2,V3,V7,I.api,I.ctor,I.env,I.readme
 
 ## §B BUGS
 
