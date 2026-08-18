@@ -44,7 +44,7 @@ id|status|task|cites
 T1|x|init `src/zeit` pyproject Python ≥3.14 uv ruff basedpyright|V11
 T2|x|add closed types Episode Entity Fact Mention IngestResult SearchHits|V4
 T3|x|add Embedder protocol + PydanticAI impl|V6
-T4|.|add Store protocol + SurrealDB schema and impl|V3,V8
+T4|x|add Store protocol + SurrealDB schema and impl|V3,V8
 T5|.|add extract prompts + PydanticAI agents|V5,V12
 T6|.|add context window fetch last N episodes|V13
 T7|.|add resolve dedupe against existing graph|V10

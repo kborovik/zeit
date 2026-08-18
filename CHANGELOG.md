@@ -4,6 +4,7 @@
 
 ### Added
 
+- **SurrealDB store:** `Store` protocol plus a SurrealDB schema and implementation bound to one namespace and database.
 - **Swappable embedder:** `Embedder` protocol plus a PydanticAI implementation; callers may supply their own.
 - **Closed types:** `Episode`, `Entity`, `Fact`, `Mention`, `IngestResult`, and `SearchHits` are frozen dataclasses with no tenant field.
 - **Package scaffold:** `import zeit` from `src/zeit/` on Python ≥3.14 with uv, ruff, and basedpyright.

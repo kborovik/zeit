@@ -9,6 +9,7 @@ description = "Most knowledge graphs overwrite when facts change. zeit expires t
 requires-python = ">=3.14"
 dependencies = [
     "pydantic-ai>=2.31.1",
+    "surrealdb>=2.0.0",
 ]
 
 [dependency-groups]

@@ -5,6 +5,7 @@ ask what was true last spring.
 """
 
 from .embedder import Embedder, PydanticAIEmbedder
+from .store import Store, SurrealStore
 from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
 
 __version__ = "0.1.0"
@@ -18,4 +19,6 @@ __all__ = [
     "Mention",
     "PydanticAIEmbedder",
     "SearchHits",
+    "Store",
+    "SurrealStore",
 ]
