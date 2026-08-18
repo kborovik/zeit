@@ -107,5 +107,5 @@ The graph API stays the same.
 
 ## Status
 
-The package is early: it installs and imports closed graph types, a swappable embedder, a SurrealDB store, and first-party extract agents.
+The package is early: it installs and imports closed graph types, a swappable embedder, a SurrealDB store, first-party extract agents, and a last-N episode context window.
 The graph API above is the target shape, not a shipped release yet.

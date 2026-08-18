@@ -46,7 +46,7 @@ T2|x|add closed types Episode Entity Fact Mention IngestResult SearchHits|V4
 T3|x|add Embedder protocol + PydanticAI impl|V6
 T4|x|add Store protocol + SurrealDB schema and impl|V3,V8
 T5|x|add extract prompts + PydanticAI agents|V5,V12
-T6|.|add context window fetch last N episodes|V13
+T6|x|add context window fetch last N episodes|V13
 T7|.|add resolve dedupe against existing graph|V10
 T8|.|add invalidate: contradict then expire fact|V2
 T9|.|add `Graph.add_episode` context extract resolve invalidate embed persist|V1

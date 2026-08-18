@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Context window:** fetch the last N episodes (default 3) in chronological order for extract and resolve.
 - **Extract agents:** first-party PydanticAI agents pull entities and facts from an episode.
 - **SurrealDB store:** `Store` protocol plus a SurrealDB schema and implementation bound to one namespace and database.
 - **Swappable embedder:** `Embedder` protocol plus a PydanticAI implementation; callers may supply their own.

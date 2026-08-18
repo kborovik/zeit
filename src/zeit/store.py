@@ -50,6 +50,7 @@ DEFINE FIELD episode_id ON mention TYPE record<episode>;
 DEFINE FIELD entity_id ON mention TYPE record<entity>;
 DEFINE FIELD surface ON mention TYPE string;
 
+DEFINE INDEX OVERWRITE episode_created_at ON episode FIELDS created_at;
 DEFINE ANALYZER OVERWRITE zeit TOKENIZERS class, camel FILTERS lowercase, ascii;
 DEFINE INDEX OVERWRITE fact_statement_ft ON fact FIELDS statement
     SEARCH ANALYZER zeit BM25;
@@ -164,6 +165,22 @@ class SurrealStore:
                 }
             ),
         )
+
+    async def recent_episodes(self, limit: int) -> tuple[Episode, ...]:
+        if limit < 0:
+            raise ValueError("limit must be >= 0")
+        await self._ensure()
+        if limit == 0:
+            return ()
+        result = await self._db.query(
+            """
+            SELECT * FROM episode
+            ORDER BY created_at DESC
+            LIMIT $limit
+            """,
+            _bind({"limit": limit}),
+        )
+        return tuple(reversed(_episodes(result)))
 
     async def _ensure(self) -> None:
         if self._ready:
@@ -342,6 +359,10 @@ def _mention(row: Mapping[str, object]) -> Mention:
         entity_id=_as_uuid(row["entity_id"]),
         surface=str(row["surface"]),
     )
+
+
+def _episodes(result: object) -> list[Episode]:
+    return [_episode(row) for row in _rows(result)]
 
 
 def _facts(result: object) -> list[Fact]:
