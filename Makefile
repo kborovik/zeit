@@ -41,60 +41,30 @@ format: .venv ## ruff format + ruff check --fix
 	$(call header,Running ruff check --fix)
 	uv run ruff check --fix
 
-# Start brew SurrealDB on 127.0.0.1:8000 when the default URL is used
-# and nothing is listening. Caller must set `started=` and trap cleanup.
-define maybe_start_surreal
-	case "$${SURREAL_URL-ws://127.0.0.1:8000/rpc}" in
-	ws://127.0.0.1:8000/rpc|ws://localhost:8000/rpc)
-		if ! (echo >/dev/tcp/127.0.0.1/8000) >/dev/null 2>&1; then
-			$(call header,Starting local SurrealDB)
-			command -v surreal >/dev/null \
-				|| { echo "install SurrealDB: brew install surrealdb/tap/surreal"; exit 1; }
-			surreal start \
-				--bind 127.0.0.1:8000 \
-				--username "$${SURREAL_USER:-root}" \
-				--password "$${SURREAL_PASS:-root}" \
-				--log warn \
-				--no-banner \
-				memory >/dev/null 2>&1 &
-			started=$$!
-			for _ in {1..100}; do
-				if (echo >/dev/tcp/127.0.0.1/8000) >/dev/null 2>&1; then
-					break
-				fi
-				kill -0 "$$started" 2>/dev/null \
-					|| { echo "surreal exited before listen"; exit 1; }
-				sleep 0.05
-			done
-			(echo >/dev/tcp/127.0.0.1/8000) >/dev/null 2>&1 \
-				|| { echo "surreal did not listen on 127.0.0.1:8000"; exit 1; }
-		fi
-		;;
-	esac
-endef
-
-define surreal_cleanup
-	if [[ -n "$${started:-}" ]]; then
-		kill "$$started" 2>/dev/null || true
-		wait "$$started" 2>/dev/null || true
-	fi
+# Start brew SurrealDB on 127.0.0.1:8000. SurrealDB reports bind/start errors.
+define start_surreal
+	command -v surreal >/dev/null \
+		|| { echo "install SurrealDB: brew install surrealdb/tap/surreal"; exit 1; }
+	surreal start \
+		--bind 127.0.0.1:8000 \
+		--username root \
+		--password root \
+		--log warn \
+		--no-banner \
+		memory &
 endef
 
 test: .venv ## Run pytest (exclude e2e)
-	started=
-	cleanup() { $(surreal_cleanup); }
-	trap cleanup EXIT
-	$(maybe_start_surreal)
+	$(call header,Starting local SurrealDB)
+	$(start_surreal)
 	$(call header,Running pytest)
 	uv run pytest -m "not e2e"
 
-e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire)
-	started=
-	cleanup() { $(surreal_cleanup); }
-	trap cleanup EXIT
-	$(maybe_start_surreal)
+e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire), verbose
+	$(call header,Starting local SurrealDB)
+	$(start_surreal)
 	$(call header,Running pytest -m e2e)
-	uv run pytest -m e2e
+	uv run pytest -m e2e -vv --capture=no --setup-show --tb=short --durations=0
 
 py-update: ## Recreate venv and upgrade locked deps
 	uv venv --clear && hash -r && uv sync --upgrade

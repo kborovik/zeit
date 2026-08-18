@@ -4,8 +4,10 @@
 
 ### Changed
 
+- **E2e verbosity:** `gmake e2e` prints Logfire configure, each ingest step, and pytest fixture setup.
+- **E2e Logfire export:** `gmake e2e` passes `send_to_logfire=True` because Logfire 4+ leaves export off under pytest; the harness flushes at session end.
 - **Unit store tests:** unit tests run against brew SurrealDB 3 or newer with a FULLTEXT schema; the 2.x `mem://` engine and SEARCH fallback are dropped.
-- **E2e SurrealDB:** `gmake e2e` starts local SurrealDB on `127.0.0.1:8000` when the default URL is used and nothing is listening.
+- **Make SurrealDB:** `gmake test` and `gmake e2e` start brew SurrealDB on `127.0.0.1:8000` and leave bind and start errors to SurrealDB.
 - **Surreal URL:** e2e `SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`; leave it empty to start a brew instance.
 - **Gemini key:** default Gemini path and e2e read `GEMINI_API_KEY` only.
 - **Default models:** `Graph` no longer requires a `ModelStack`; extract, resolve, and invalidate default to `google:gemini-3.7-flash`; the embedder defaults to `google:gemini-embedding-2`.

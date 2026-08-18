@@ -30,6 +30,7 @@ def test_e2e_marker_and_command() -> None:
     makefile = _source(MAKEFILE)
     assert "e2e: live SurrealDB, Gemini, and Logfire" in pyproject
     assert "pytest -m e2e" in makefile
+    assert "-vv --capture=no --setup-show --tb=short --durations=0" in makefile
     assert 'pytest -m "not e2e"' in makefile
     assert "surreal start" in makefile
     assert "--bind 127.0.0.1:8000" in makefile
@@ -89,7 +90,10 @@ def test_e2e_does_not_own_keys_after_load() -> None:
     for key in ("GEMINI_API_KEY", "LOGFIRE_TOKEN"):
         assert f'os.environ["{key}"]' not in source
         assert f"os.environ['{key}']" not in source
-    assert "logfire.configure(service_name=E2E_SERVICE_NAME)" in source
+    assert (
+        "logfire.configure(service_name=E2E_SERVICE_NAME, send_to_logfire=True)"
+        in source
+    )
     params = inspect.signature(Graph.__init__).parameters
     assert "token" not in params
     assert "logfire" not in params
@@ -142,6 +146,8 @@ def test_e2e_configures_logfire_at_process_start() -> None:
     assert "def pytest_configure" in source
     assert "logfire.configure" in source
     assert "service_name=E2E_SERVICE_NAME" in source
+    assert "send_to_logfire=True" in source
+    assert "force_flush" in source
     assert 'E2E_SERVICE_NAME = "zeit-e2e"' in world
     assert "logfire.instrument_pydantic_ai" not in source
     params = inspect.signature(Graph.__init__).parameters

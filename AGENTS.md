@@ -13,6 +13,7 @@ Headings, tables, and fenced code blocks are exempt.
 ## Logfire after e2e
 
 The e2e harness configures Logfire at process start with service name `zeit-e2e`.
+It passes `send_to_logfire=True` because Logfire 4+ leaves export off when `PYTEST_VERSION` is set.
 The library instruments PydanticAI, so the harness does not call `logfire.instrument_pydantic_ai`.
 `pytest -m e2e` asserts the graph only.
 Do not query Logfire over HTTP from pytest.

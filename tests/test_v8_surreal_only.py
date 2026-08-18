@@ -110,8 +110,9 @@ def test_unit_store_tests_start_brew_surreal() -> None:
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
     assert "def brew_surreal_url" in conftest
     assert "brew install surrealdb/tap/surreal" in conftest
-    assert makefile.count("$(maybe_start_surreal)") >= 2
+    assert makefile.count("$(start_surreal)") >= 2
     assert "surreal start" in makefile
+
 
 
 async def test_put_get_roundtrip(store: SurrealStore) -> None:

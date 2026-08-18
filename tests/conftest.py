@@ -68,12 +68,30 @@ def _e2e_deselected(config: pytest.Config) -> bool:
 def pytest_configure(config: pytest.Config) -> None:
     if _e2e_deselected(config):
         return
+    print("e2e: loading repo .env", flush=True)
     load_repo_env()
     if not has_live_keys():
+        print(
+            "e2e: skip Logfire configure; missing GEMINI_API_KEY or LOGFIRE_TOKEN",
+            flush=True,
+        )
         return
     import logfire
 
-    logfire.configure(service_name=E2E_SERVICE_NAME)
+    print(f"e2e: configuring Logfire service_name={E2E_SERVICE_NAME}", flush=True)
+    # Logfire 4+ defaults send_to_logfire to False when PYTEST_VERSION is set.
+    logfire.configure(service_name=E2E_SERVICE_NAME, send_to_logfire=True)
+    print("e2e: Logfire configured; library will instrument PydanticAI", flush=True)
+
+
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    del exitstatus
+    if _e2e_deselected(session.config) or not has_live_keys():
+        return
+    import logfire
+
+    print("e2e: flushing Logfire", flush=True)
+    logfire.force_flush()
 
 
 def surreal_credentials() -> dict[str, str]:
@@ -221,16 +239,37 @@ def world() -> SyntheticWorld:
 async def ingested(
     surreal_url: str, world: SyntheticWorld
 ) -> AsyncIterator[IngestedWorld]:
+    database = f"e2e_{uuid4().hex}"
+    print(
+        f"e2e: open Graph ns={E2E_NAMESPACE} db={database} url={surreal_url}",
+        flush=True,
+    )
     graph = Graph(
         surreal_url,
         E2E_NAMESPACE,
-        f"e2e_{uuid4().hex}",
+        database,
         surreal_credentials(),
     )
     try:
         results: list[IngestResult] = []
-        for episode in world.episodes():
-            results.append(await graph.add_episode(episode.content, now=episode.now))
+        episodes = world.episodes()
+        total = len(episodes)
+        for index, episode in enumerate(episodes, start=1):
+            print(
+                f"e2e: ingest {index}/{total} at {episode.now.isoformat()}",
+                flush=True,
+            )
+            print(f"e2e: episode {index}: {episode.content}", flush=True)
+            result = await graph.add_episode(episode.content, now=episode.now)
+            print(
+                f"e2e: ingest {index}/{total} done "
+                f"entities={len(result.entities)} facts={len(result.facts)} "
+                f"mentions={len(result.mentions)}",
+                flush=True,
+            )
+            results.append(result)
+        print(f"e2e: ingested {total} episodes", flush=True)
         yield IngestedWorld(graph=graph, world=world, results=tuple(results))
     finally:
+        print("e2e: closing Graph", flush=True)
         await graph.aclose()
