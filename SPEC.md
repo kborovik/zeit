@@ -18,8 +18,9 @@ implement bi-temporal ingest-resolve-invalidate-hybrid-search as Python ≥3.14 
 - proto: `Embedder.embed(list[str])` → `list[list[float]]`; `Store` put/get/search/expire
 - ctor: `Graph(url, namespace, database, credentials, ModelStack?, episode_window=3, max_concurrency)` — defaults extract/resolve/invalidate=`google:gemini-3.7-flash`, embedder=`google:gemini-embedding-2`
 - pkg: `import zeit` from `src/zeit/`; runtime dep `pydantic-ai-slim[google]`
-- env: caller configures Logfire at process start; library ! own token; default Gemini path reads `GEMINI_API_KEY` or `GOOGLE_API_KEY`
-- cmd: `uv` env; `ruff check`/`ruff format`; `basedpyright` strict
+- env: caller configures Logfire at process start; library ! own token; default Gemini path reads `GEMINI_API_KEY` or `GOOGLE_API_KEY`; e2e ! `GEMINI_API_KEY` or `GOOGLE_API_KEY` + `LOGFIRE_TOKEN`; `SURREAL_URL` ? reuse host surreal
+- cmd: `uv` env; `ruff check`/`ruff format`; `basedpyright` strict; e2e: `brew install surrealdb/tap/surreal`; `pytest -m e2e`
+- agents: AGENTS.md Logfire MCP recipe — after `pytest -m e2e` query `query_schema_reference` then `query_run` for PydanticAI spans in e2e window by service name harness set at process start; pytest ! query Logfire HTTP
 
 ## §V INVARIANTS
 
@@ -57,6 +58,7 @@ T13|x|test expire, entity merge, db tenant isolation, valid_now search|V2,V3,V9,
 T14|x|sweep `*.md` one sentence per line; sentence ! wrap|V14
 T15|x|set ModelStack defaults `google:gemini-3.7-flash` + `google:gemini-embedding-2`; ModelStack optional on Graph|V5,V6,I.ctor
 T16|x|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
+T17|.|add e2e: brew `surreal` fixture + org-chart SyntheticWorld + live Gemini + process-start Logfire + AGENTS.md MCP recipe; pytest asserts graph only|V2,V7,V8,V9,V10,I.env,I.cmd,I.agents
 
 ## §B BUGS
 
