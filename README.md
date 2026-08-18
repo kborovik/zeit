@@ -37,7 +37,7 @@ Ask what was true in February and you still get Acme.
 1. **Ingest an episode** from a chat turn, a document, or a fact you already know.
 2. zeit pulls out people, things, and claims; two names for the same person become one entity.
 3. A contradicting claim expires the old fact, and history stays.
-4. **Search** before the next model call. Hits mix meaning, keywords, and nearby graph links; by default the model sees what’s valid now.
+4. **Search** before the next model call: hits mix meaning, keywords, and nearby graph links; by default the model sees what’s valid now.
 
 ## Intended shape
 
@@ -65,21 +65,33 @@ Look up a stored entity or fact with `get_entity` and `get_fact`.
 
 ## Run from this repo
 
-Python 3.14 or newer, and [uv](https://docs.astral.sh/uv/).
+Python 3.14 or newer, [uv](https://docs.astral.sh/uv/), and GNU Make ≥ 3.82.
+macOS ships Make 3.81, so use Homebrew `gmake`: `brew install make`.
 
 ```bash
-uv sync
-uv run python -c "import zeit; print(zeit.__version__)"
+gmake check
 ```
 
-Checks:
+That creates `.venv` from `uv.lock` and runs lint plus tests.
+`gmake lint` is check-only (`ruff check`, `ruff format --check`, basedpyright).
+`gmake format` applies ruff.
+`gmake test` runs pytest.
+`gmake help` lists the rest.
+
+## Release
+
+Human release notes live in [`CHANGELOG.md`](CHANGELOG.md) (Keep a Changelog).
+During development, append user-facing work under `## Unreleased` in `### Added` / `### Changed` / `### Fixed` as appropriate.
+Empty Unreleased (no bullets) hard-fails the release.
 
 ```bash
-uv run pytest
-uv run ruff check
-uv run ruff format --check
-uv run basedpyright
+gmake release patch
 ```
+
+`gmake release` is the sole release path.
+It runs `gmake check`, refuses an empty Unreleased, bumps the version, promotes Unreleased to `## [vX.Y.Z] - YYYY-MM-DD`, then commits, tags, and pushes.
+Do not run `gh release create` locally.
+GitHub Actions on tag `v*` re-runs CI, builds sdist and wheel, and creates a GitHub Release whose notes are that promoted section.
 
 ## How it runs
 

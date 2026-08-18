@@ -40,3 +40,10 @@ def test_basedpyright_strict() -> None:
     basedpyright = _table(_table(_pyproject()["tool"])["basedpyright"])
     assert basedpyright["typeCheckingMode"] == "strict"
     assert basedpyright["pythonVersion"] == "3.14"
+
+
+def test_makefile_lint_is_check_only() -> None:
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "ruff check" in makefile
+    assert "ruff format --check" in makefile
+    assert "basedpyright" in makefile
