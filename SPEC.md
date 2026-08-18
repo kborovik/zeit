@@ -51,7 +51,7 @@ T7|x|add resolve dedupe against existing graph|V10
 T8|x|add invalidate: contradict then expire fact|V2
 T9|x|add `Graph.add_episode` context extract resolve invalidate embed persist|V1
 T10|x|add `Graph.add_triplet` skip Extract|V1
-T11|.|add `Graph.search` hybrid RRF + one-hop + uuid getters|V9
+T11|x|add `Graph.search` hybrid RRF + one-hop + uuid getters|V9
 T12|.|wire Logfire on PydanticAI calls; no token in Graph|V7
 T13|.|test expire, entity merge, db tenant isolation, valid_now search|V2,V3,V9,V10
 T14|x|sweep `*.md` one sentence per line; sentence ! wrap|V14

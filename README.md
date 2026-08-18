@@ -108,5 +108,4 @@ The graph API stays the same.
 
 ## Status
 
-The package is early: it ships `Graph.add_episode` and `add_triplet` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, and a last-N episode context window.
-`search`, `get_entity`, and `get_fact` are not shipped yet.
+The package is early: it ships `Graph.add_episode`, `add_triplet`, `search`, `get_entity`, and `get_fact` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, and a last-N episode context window.

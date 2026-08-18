@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Hybrid search:** `Graph.search` embeds the query, fuses vector and full-text ranks with reciprocal rank fusion, expands one hop, and defaults to facts that are valid now.
+- **Uuid getters:** `Graph.get_entity` and `Graph.get_fact` return a stored record or `None`.
 - **Known facts:** `Graph.add_triplet` writes a subject-predicate-object claim without extract, then resolves, invalidates, embeds, and persists.
 - **Graph ingest:** `Graph.add_episode` runs context, extract, resolve, invalidate, embed, and persist, then returns `IngestResult`.
 - **Invalidate:** a contradicting claim expires the old fact in place and keeps both world time and transaction time on the row.

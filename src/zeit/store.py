@@ -194,7 +194,9 @@ class SurrealStore:
         )
         return tuple(_entities(result))
 
-    async def open_facts(self, entity_ids: Sequence[UUID]) -> tuple[Fact, ...]:
+    async def open_facts(
+        self, entity_ids: Sequence[UUID], *, valid_now: bool = True
+    ) -> tuple[Fact, ...]:
         unique = list(dict.fromkeys(entity_ids))
         if not unique:
             return ()
@@ -202,11 +204,16 @@ class SurrealStore:
         result = await self._db.query(
             """
             SELECT * FROM fact
-            WHERE expired_at = NONE
+            WHERE ($valid_now = false OR expired_at = NONE)
               AND (subject_id IN $ids OR object_id IN $ids)
             ORDER BY created_at ASC
             """,
-            _bind({"ids": [_rid("entity", item) for item in unique]}),
+            _bind(
+                {
+                    "ids": [_rid("entity", item) for item in unique],
+                    "valid_now": valid_now,
+                }
+            ),
         )
         return tuple(_facts(result))
 

@@ -1,4 +1,4 @@
-"""Staged ingest: add_episode runs extract; add_triplet skips it."""
+"""Staged ingest plus hybrid search and uuid getters."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import final
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from pydantic_ai.models import Model
 
@@ -16,7 +16,7 @@ from .extract import ExtractedEntity, ExtractedFact, Extraction, extract
 from .invalidate import invalidate
 from .resolve import Resolution, resolve
 from .store import SurrealStore
-from .types import Entity, Episode, Fact, IngestResult, Mention
+from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
 
 MAX_CONCURRENCY = 8
 
@@ -89,6 +89,19 @@ class Graph:
             ),
         )
         return await self._ingest(extraction, content=None, prior=prior, now=stamp)
+
+    async def search(self, query: str, *, valid_now: bool = True) -> SearchHits:
+        vectors = await self.models.embedder.embed([query])
+        if len(vectors) != 1:
+            raise RuntimeError("embedder returned the wrong number of vectors")
+        hits = await self.store.search(query, vectors[0], valid_now=valid_now)
+        return await _one_hop(self.store, hits, valid_now=valid_now)
+
+    async def get_entity(self, uuid: UUID) -> Entity | None:
+        return await self.store.get(Entity, uuid)
+
+    async def get_fact(self, uuid: UUID) -> Fact | None:
+        return await self.store.get(Fact, uuid)
 
     async def _prior(self) -> tuple[str, ...]:
         prior_episodes = await recent_episodes(
@@ -216,3 +229,37 @@ async def _unsaved(
         if await store.get(Entity, entity.uuid) is None:
             new.append(entity)
     return tuple(new)
+
+
+async def _one_hop(
+    store: SurrealStore, hits: SearchHits, *, valid_now: bool
+) -> SearchHits:
+    seen_facts = {fact.uuid: fact for fact in hits.facts}
+    seen_entities = {entity.uuid: entity for entity in hits.entities}
+    seed_ids = list(seen_entities)
+    for fact in hits.facts:
+        seed_ids.append(fact.subject_id)
+        seed_ids.append(fact.object_id)
+    extra_facts: list[Fact] = []
+    for fact in await store.open_facts(seed_ids, valid_now=valid_now):
+        if fact.uuid in seen_facts:
+            continue
+        seen_facts[fact.uuid] = fact
+        extra_facts.append(fact)
+    extra_entities: list[Entity] = []
+    needed = list(seen_entities)
+    for fact in (*hits.facts, *extra_facts):
+        needed.append(fact.subject_id)
+        needed.append(fact.object_id)
+    for entity_id in dict.fromkeys(needed):
+        if entity_id in seen_entities:
+            continue
+        entity = await store.get(Entity, entity_id)
+        if entity is None:
+            continue
+        seen_entities[entity_id] = entity
+        extra_entities.append(entity)
+    return SearchHits(
+        facts=(*hits.facts, *extra_facts),
+        entities=(*hits.entities, *extra_entities),
+    )
