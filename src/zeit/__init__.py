@@ -6,6 +6,7 @@ ask what was true last spring.
 
 from .context import EPISODE_WINDOW, recent_episodes
 from .embedder import Embedder, PydanticAIEmbedder
+from .resolve import BoundEntity, Resolution, resolve
 from .store import Store, SurrealStore
 from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
 
@@ -13,6 +14,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "EPISODE_WINDOW",
+    "BoundEntity",
     "Embedder",
     "Entity",
     "Episode",
@@ -20,8 +22,10 @@ __all__ = [
     "IngestResult",
     "Mention",
     "PydanticAIEmbedder",
+    "Resolution",
     "SearchHits",
     "Store",
     "SurrealStore",
     "recent_episodes",
+    "resolve",
 ]

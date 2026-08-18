@@ -182,6 +182,18 @@ class SurrealStore:
         )
         return tuple(reversed(_episodes(result)))
 
+    async def entities_named(self, name: str) -> tuple[Entity, ...]:
+        await self._ensure()
+        result = await self._db.query(
+            """
+            SELECT * FROM entity
+            WHERE name = $name
+            ORDER BY created_at ASC
+            """,
+            _bind({"name": name}),
+        )
+        return tuple(_entities(result))
+
     async def _ensure(self) -> None:
         if self._ready:
             return

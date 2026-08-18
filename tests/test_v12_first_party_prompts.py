@@ -1,10 +1,12 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 from pydantic import BaseModel
 from pydantic_ai import capture_run_messages
 from pydantic_ai.messages import ModelRequest, UserPromptPart
 from pydantic_ai.models.test import TestModel
 
+from zeit import Entity, SurrealStore
 from zeit.extract import (
     ENTITY_INSTRUCTIONS,
     FACT_INSTRUCTIONS,
@@ -15,7 +17,8 @@ from zeit.extract import (
     extract_entities,
     extract_facts,
 )
-from zeit.types import Entity, Fact
+from zeit.resolve import RESOLVE_INSTRUCTIONS, EntityMatch, resolve
+from zeit.types import Fact
 
 NOW = datetime(2026, 3, 1, tzinfo=UTC)
 
@@ -24,8 +27,11 @@ def test_output_models_are_first_party_pydantic() -> None:
     for cls in (ExtractedEntity, ExtractedFact, ExtractedEntities, ExtractedFacts):
         assert cls.__module__ == "zeit.extract"
         assert issubclass(cls, BaseModel)
+    assert EntityMatch.__module__ == "zeit.resolve"
+    assert issubclass(EntityMatch, BaseModel)
     assert ExtractedEntity is not Entity
     assert ExtractedFact is not Fact
+    assert EntityMatch is not Entity
 
 
 def test_instructions_are_first_party() -> None:
@@ -33,8 +39,11 @@ def test_instructions_are_first_party() -> None:
     assert "Do not invent entities" in ENTITY_INSTRUCTIONS
     assert "expired, not overwritten" in FACT_INSTRUCTIONS
     assert "subject and object must be entity names" in FACT_INSTRUCTIONS
+    assert "same real-world entity" in RESOLVE_INSTRUCTIONS
+    assert "Return no existing_name" in RESOLVE_INSTRUCTIONS
     assert "graphiti" not in ENTITY_INSTRUCTIONS.lower()
     assert "graphiti" not in FACT_INSTRUCTIONS.lower()
+    assert "graphiti" not in RESOLVE_INSTRUCTIONS.lower()
 
 
 async def test_entity_agent_sends_first_party_instructions() -> None:
@@ -94,3 +103,28 @@ async def test_fact_agent_sends_first_party_instructions() -> None:
             valid_at=NOW,
         ),
     )
+
+
+async def test_resolve_agent_sends_first_party_instructions() -> None:
+    store = SurrealStore("mem://", "app", "memory")
+    try:
+        await store.put(
+            Entity(uuid=uuid4(), name="Ada", created_at=NOW),
+        )
+        with capture_run_messages() as messages:
+            await resolve(
+                (ExtractedEntity(name="Ada Lovelace"),),
+                store,
+                model=TestModel(custom_output_args={"existing_name": "Ada"}),
+                now=NOW,
+            )
+    finally:
+        await store.aclose()
+    requests = [item for item in messages if isinstance(item, ModelRequest)]
+    assert requests
+    assert requests[0].instructions == RESOLVE_INSTRUCTIONS
+    part = requests[0].parts[0]
+    assert isinstance(part, UserPromptPart)
+    assert isinstance(part.content, str)
+    assert "Ada Lovelace" in part.content
+    assert "Ada" in part.content

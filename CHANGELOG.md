@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Resolve:** match extracted surface forms to existing entities so two names for the same thing share one uuid.
 - **Context window:** fetch the last N episodes (default 3) in chronological order for extract and resolve.
 - **Extract agents:** first-party PydanticAI agents pull entities and facts from an episode.
 - **SurrealDB store:** `Store` protocol plus a SurrealDB schema and implementation bound to one namespace and database.
