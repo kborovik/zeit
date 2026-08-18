@@ -40,7 +40,7 @@ V13: window-bound — `episode_window` default 3; extract/resolve fan-out bounde
 ## §T TASKS
 
 id|status|task|cites
-T1|.|init `src/zeit` pyproject Python ≥3.14 uv ruff basedpyright|V11
+T1|x|init `src/zeit` pyproject Python ≥3.14 uv ruff basedpyright|V11
 T2|.|add closed types Episode Entity Fact Mention IngestResult SearchHits|V4
 T3|.|add Embedder protocol + PydanticAI impl|V6
 T4|.|add Store protocol + SurrealDB schema and impl|V3,V8
