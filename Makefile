@@ -17,7 +17,7 @@ export PATH := $(abspath .venv)/bin:$(PATH)
 
 default: help
 
-.PHONY: help check lint format test py-update py-reset \
+.PHONY: help check lint format test e2e py-update py-reset \
 	release major minor patch
 
 ###############################################################################
@@ -41,9 +41,13 @@ format: .venv ## ruff format + ruff check --fix
 	$(call header,Running ruff check --fix)
 	uv run ruff check --fix
 
-test: .venv ## Run pytest
+test: .venv ## Run pytest (exclude e2e)
 	$(call header,Running pytest)
-	uv run pytest
+	uv run pytest -m "not e2e"
+
+e2e: .venv ## Run live e2e (SurrealDB + Gemini + Logfire)
+	$(call header,Running pytest -m e2e)
+	uv run pytest -m e2e
 
 py-update: ## Recreate venv and upgrade locked deps
 	uv venv --clear && hash -r && uv sync --upgrade

@@ -30,4 +30,4 @@ jobs:
         run: uv run basedpyright
 
       - name: Tests
-        run: uv run pytest -x
+        run: uv run pytest -x -m "not e2e"

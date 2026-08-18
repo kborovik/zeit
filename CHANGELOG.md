@@ -9,6 +9,7 @@
 
 ### Added
 
+- **E2e:** `pytest -m e2e` ingests an org-chart SyntheticWorld against brew SurrealDB with live Gemini; the harness configures Logfire at process start; pytest asserts the graph only.
 - **Logfire traces:** extract, resolve, invalidate, and embed calls emit OpenTelemetry spans so they appear in Logfire when the caller has configured it; `Graph` does not take a token.
 - **Hybrid search:** `Graph.search` embeds the query, fuses vector and full-text ranks with reciprocal rank fusion, expands one hop, and defaults to facts that are valid now.
 - **Uuid getters:** `Graph.get_entity` and `Graph.get_fact` return a stored record or `None`.

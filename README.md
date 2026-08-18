@@ -78,7 +78,12 @@ gmake check
 That creates `.venv` from `uv.lock` and runs lint plus tests.
 `gmake lint` is check-only (`ruff check`, `ruff format --check`, basedpyright).
 `gmake format` applies ruff.
-`gmake test` runs pytest.
+`gmake test` runs pytest excluding e2e.
+`gmake e2e` runs `pytest -m e2e` against live Gemini, brew SurrealDB, and process-start Logfire.
+That suite needs `GEMINI_API_KEY` or `GOOGLE_API_KEY`, plus `LOGFIRE_TOKEN`.
+Install SurrealDB with `brew install surrealdb/tap/surreal`, or set `SURREAL_URL` to reuse a running host.
+pytest asserts the graph only.
+After a run, follow the Logfire MCP recipe in `AGENTS.md`.
 `gmake help` lists the rest.
 
 ## Release
