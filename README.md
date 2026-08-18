@@ -39,98 +39,130 @@ Ask what was true in February and you still get Acme.
 3. A contradicting claim expires the old fact, and history stays.
 4. **Search** before the next model call: hits mix meaning, keywords, and nearby graph links; by default the model sees what’s valid now.
 
-## Intended shape
+## Install
 
-Install the PyPI package `zeit-graph`; the import stays `zeit`.
-Drop a `Graph` into your LLM app.
-The public API is async.
-A `Graph` is one SurrealDB namespace + database.
+Install the PyPI package `zeit-graph`.
+The import name is `zeit`.
+Python 3.14 or newer is required.
+Every public method is async.
+
+```bash
+uv add zeit-graph
+```
+
+## Construct a Graph
+
+One `Graph` is one SurrealDB namespace plus database.
+Records have no tenant field.
+Other databases are invisible through this `Graph`.
+
+Configure Logfire before you construct `Graph` if you want traces.
+Do not pass a Logfire token to `Graph`.
+Do not call `logfire.instrument_pydantic_ai`.
+zeit instruments PydanticAI after you configure.
+
+Default Gemini models read `GEMINI_API_KEY`.
 
 ```python
+import logfire
 from zeit import Graph
 
+logfire.configure()
+
 graph = Graph(
-    url="ws://localhost:8000/rpc",
+    url="ws://127.0.0.1:8000/rpc",
     namespace="app",
     database="memory",
-    credentials=credentials,
+    credentials={"username": "root", "password": "root"},
 )
 
-await graph.add_episode("Ada left Acme for Birch in March 2026.")
-await graph.add_triplet("Ada", "works_at", "Birch", "Ada works at Birch.")
 hits = await graph.search("where does Ada work?")
+await graph.aclose()
 ```
+
+`credentials` is optional.
+Pass `models=ModelStack(...)` to override extract, resolve, invalidate, or the embedder.
+`episode_window` defaults to `3`.
+`max_concurrency` defaults to `8`.
+
+## Ingest
+
+`add_episode` extracts people, things, and claims from text, then resolves, invalidates, embeds, and persists.
+
+```python
+result = await graph.add_episode("Ada left Acme for Birch in March 2026.")
+```
+
+`add_triplet` skips extract and writes a known subject-predicate-object claim.
+
+```python
+result = await graph.add_triplet(
+    "Ada",
+    "works_at",
+    "Birch",
+    "Ada works at Birch.",
+)
+```
+
+Both return `IngestResult` with `episode`, `entities`, `facts`, and `mentions`.
+`add_triplet` leaves `episode` as `None`.
+Two surface forms of the same entity in one database become one `Entity` uuid.
+
+## Clocks
+
+`Fact.valid_at` and `Fact.invalid_at` are world time.
+`Fact.created_at` and `Fact.expired_at` are transaction time.
+A contradicting claim sets `invalid_at` and `expired_at` on the old row.
+zeit does not drop the old row.
+
+Pass `valid_at` on `add_triplet` when you already know when the claim became true.
+Pass `now` on either ingest method to stamp transaction time.
+
+## Search and look up
+
+`search` embeds the query, fuses vector and full-text ranks, then expands one hop.
+`valid_now` defaults to `True` and excludes expired facts.
+
+```python
+hits = await graph.search("where does Ada work?")
+past = await graph.search("where does Ada work?", valid_now=False)
+entity = await graph.get_entity(hits.entities[0].uuid)
+fact = await graph.get_fact(hits.facts[0].uuid)
+```
+
+`get_entity` and `get_fact` return the stored record or `None`.
+
+## Closed types
+
+`Episode`, `Entity`, `Fact`, `Mention`, `IngestResult`, and `SearchHits` have closed field sets.
+Do not subclass them.
+`Entity.attributes` is an untyped `dict`.
+
+## Models
 
 Extract, resolve, and invalidate default to `google:gemini-3.7-flash`.
 The embedder defaults to `google:gemini-embedding-2`.
 Pass a `ModelStack` to override any of those.
-Skip extraction and write a known fact with `add_triplet`.
-Look up a stored entity or fact with `get_entity` and `get_fact`.
-
-## Run from this repo
-
-Python 3.14 or newer, [uv](https://docs.astral.sh/uv/), and GNU Make 3.82 or newer.
-macOS ships Make 3.81, so use Homebrew `gmake`: `brew install make`.
-
-```bash
-gmake check
-```
-
-That creates `.venv` from `uv.lock` and runs lint plus tests.
-`gmake lint` is check-only (`ruff check`, `ruff format --check`, basedpyright).
-`gmake format` applies ruff.
-`gmake test` starts local SurrealDB on `127.0.0.1:8000`, then runs pytest excluding e2e.
-`gmake e2e` starts local SurrealDB on `127.0.0.1:8000`, then runs `pytest -m e2e` verbosely against live Gemini and process-start Logfire.
-Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY` plus `LOGFIRE_TOKEN`.
-The e2e harness reads repo `.env` before start.
-`SURREAL_URL` defaults to `ws://127.0.0.1:8000/rpc`.
-Leave it empty to start a brew SurrealDB instead.
-Install SurrealDB with `brew install surrealdb/tap/surreal`.
-pytest asserts the graph only.
-After a run, follow the Logfire MCP recipe in `AGENTS.md`.
-`gmake help` lists the rest.
-
-## Release
-
-Human release notes live in [`CHANGELOG.md`](CHANGELOG.md) (Keep a Changelog).
-During development, append user-facing work under `## Unreleased` in `### Added` / `### Changed` / `### Fixed` as appropriate.
-Empty Unreleased (no bullets) hard-fails the release.
-
-```bash
-gmake release patch
-```
-
-`gmake release` is the sole release path.
-It runs `gmake check`, refuses an empty Unreleased, bumps the version, promotes Unreleased to `## [vX.Y.Z] - YYYY-MM-DD`, then commits, tags, and pushes.
-Do not run `gh release create` or `uv publish` locally.
-GitHub Actions on tag `v*` re-runs CI, builds sdist and wheel, creates a GitHub Release whose notes are that promoted section, and publishes `zeit-graph` to PyPI.
-Publishing uses Trusted Publishing against the GitHub `pypi` environment.
-Do not store a PyPI token in the repo.
-Before the first upload, add a pending trusted publisher on PyPI for project `zeit-graph`, owner `kborovik`, repository `zeit`, workflow `release.yml`, environment `pypi`.
-
-## How it runs
-
-zeit is the ingest then resolve then expire then search algorithm.
-The current implementation uses:
-
-- **SurrealDB** as the only store
-- **PydanticAI** for every LLM call (`pydantic-ai-slim[google]`)
-- **Logfire** for traces — you configure Logfire in your process; zeit does not take a token
-
-Configure Logfire before you construct a `Graph`.
 
 ```python
-import logfire
+from zeit import Graph, ModelStack, PydanticAIEmbedder
 
-logfire.configure()
+graph = Graph(
+    url,
+    namespace,
+    database,
+    credentials,
+    models=ModelStack(
+        extract="google:gemini-3.7-flash",
+        embedder=PydanticAIEmbedder("google:gemini-embedding-2"),
+    ),
+)
 ```
 
-zeit instruments PydanticAI after that, so you do not call `logfire.instrument_pydantic_ai`.
+A custom embedder implements `async def embed(self, texts: list[str]) -> list[list[float]]`.
 
-Default Gemini models read `GEMINI_API_KEY`.
-Swap the embedder if you want.
-The graph API stays the same.
+## Agent rules
 
-## Status
-
-The package is early: it ships `Graph.add_episode`, `add_triplet`, `search`, `get_entity`, and `get_fact` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, a last-N episode context window, and Logfire traces on PydanticAI calls.
+Use `Graph.add_episode`, `add_triplet`, `search`, `get_entity`, and `get_fact`.
+zeit is the ingest then resolve then expire then search algorithm.
+SurrealDB, PydanticAI, and Logfire are how it runs, not what it is.

@@ -64,7 +64,7 @@ T18|x|add `.env.example` + e2e read `.env` before start|I.env,V7
 T19|x|swap unit store tests off `mem://` 2.x onto brew SurrealDB ≥3; schema FULLTEXT only; drop SEARCH fallback|V8,I.cmd
 T20|x|library instrument PydanticAI so every LLM call emits Logfire span after caller configure; caller ! need instrument_pydantic_ai; ! token ! configure|V7,I.env,I.pkg
 T21|x|add tag `v*` publish PyPI `zeit-graph` via trusted publishing|I.pkg,I.cmd
-T22|.|rewrite README.md from `## Intended shape` inclusive → LLM-agent how-to use zeit; drop Run from this repo, Release, How it runs, Status|V2,V3,V7,I.api,I.ctor,I.env,I.readme
+T22|x|rewrite README.md from `## Intended shape` inclusive → LLM-agent how-to use zeit; drop Run from this repo, Release, How it runs, Status|V2,V3,V7,I.api,I.ctor,I.env,I.readme
 
 ## §B BUGS
 

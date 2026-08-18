@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **README:** after the pitch, README is an LLM-agent how-to for using zeit as a library.
+
 ## [v0.1.2] - 2026-08-18
 
 ### Changed

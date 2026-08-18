@@ -35,7 +35,6 @@ def test_e2e_marker_and_command() -> None:
     assert "surreal start" in makefile
     assert "--bind 127.0.0.1:8000" in makefile
     assert "brew install surrealdb/tap/surreal" in makefile
-    assert "brew install surrealdb/tap/surreal" in _source(ROOT / "README.md")
 
 
 def test_e2e_skips_without_live_keys() -> None:
