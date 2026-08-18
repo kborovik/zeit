@@ -56,7 +56,7 @@ T12|.|wire Logfire on PydanticAI calls; no token in Graph|V7
 T13|.|test expire, entity merge, db tenant isolation, valid_now search|V2,V3,V9,V10
 T14|x|sweep `*.md` one sentence per line; sentence ! wrap|V14
 T15|x|set ModelStack defaults `google:gemini-3.7-flash` + `google:gemini-embedding-2`; ModelStack optional on Graph|V5,V6,I.ctor
-T16|.|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
+T16|x|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
 
 ## §B BUGS
 

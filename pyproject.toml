@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Most knowledge graphs overwrite when facts change. zeit expires the old fact instead, so you can search what's true now and still ask what was true last spring."
 requires-python = ">=3.14"
 dependencies = [
-    "pydantic-ai>=2.31.1",
+    "pydantic-ai-slim[google]>=2.31.1",
     "pydantic>=2.13",
     "surrealdb>=2.0.0",
 ]

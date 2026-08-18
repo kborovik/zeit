@@ -1,9 +1,13 @@
+import inspect
 import sys
 import tomllib
 from pathlib import Path
 from typing import cast
 
 import zeit
+from zeit import Graph
+from zeit.embedder import DEFAULT_EMBEDDER_MODEL
+from zeit.graph import DEFAULT_MODEL
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -47,3 +51,43 @@ def test_makefile_lint_is_check_only() -> None:
     assert "ruff check" in makefile
     assert "ruff format --check" in makefile
     assert "basedpyright" in makefile
+
+
+def _runtime_deps() -> list[str]:
+    project = _table(_pyproject()["project"])
+    raw = project["dependencies"]
+    assert isinstance(raw, list)
+    deps: list[str] = []
+    for item in cast(list[object], raw):
+        assert isinstance(item, str)
+        deps.append(item)
+    return deps
+
+
+def test_runtime_dep_is_pydantic_ai_slim_google() -> None:
+    deps = _runtime_deps()
+    pydantic_ai = [item for item in deps if item.startswith("pydantic-ai")]
+    assert len(pydantic_ai) == 1
+    spec = pydantic_ai[0]
+    assert spec.startswith("pydantic-ai-slim[google]")
+    for extra in ("cli", "openai", "anthropic"):
+        assert extra not in spec.lower()
+
+
+def test_library_does_not_own_logfire_or_model_token() -> None:
+    params = inspect.signature(Graph.__init__).parameters
+    assert "token" not in params
+    assert "api_key" not in params
+    assert "logfire" not in params
+    for path in (ROOT / "src" / "zeit").rglob("*.py"):
+        assert "LOGFIRE_TOKEN" not in path.read_text(encoding="utf-8")
+
+
+def test_default_gemini_path_reads_google_or_gemini_key() -> None:
+    assert DEFAULT_MODEL.startswith("google:")
+    assert DEFAULT_EMBEDDER_MODEL.startswith("google:")
+    from pydantic_ai.providers import google as google_provider
+
+    source = Path(google_provider.__file__).read_text(encoding="utf-8")
+    assert "GOOGLE_API_KEY" in source
+    assert "GEMINI_API_KEY" in source

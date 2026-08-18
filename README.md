@@ -102,9 +102,10 @@ zeit is the ingest → resolve → expire → search algorithm.
 The current implementation uses:
 
 - **SurrealDB** as the only store
-- **PydanticAI** for every LLM call
+- **PydanticAI** for every LLM call (`pydantic-ai-slim[google]`)
 - **Logfire** for traces — you configure Logfire in your process; zeit does not take a token
 
+Default Gemini models read `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 Swap the embedder if you want.
 The graph API stays the same.
 
