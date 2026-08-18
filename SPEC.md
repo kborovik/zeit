@@ -54,7 +54,7 @@ T10|.|add `Graph.add_triplet` skip Extract|V1
 T11|.|add `Graph.search` hybrid RRF + one-hop + uuid getters|V9
 T12|.|wire Logfire on PydanticAI calls; no token in Graph|V7
 T13|.|test expire, entity merge, db tenant isolation, valid_now search|V2,V3,V9,V10
-T14|.|sweep `*.md` one sentence per line; sentence ! wrap|V14
+T14|x|sweep `*.md` one sentence per line; sentence ! wrap|V14
 
 ## §B BUGS
 
