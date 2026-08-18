@@ -68,7 +68,7 @@ Look up a stored entity or fact with `get_entity` and `get_fact`.
 
 ## Run from this repo
 
-Python 3.14 or newer, [uv](https://docs.astral.sh/uv/), and GNU Make ≥ 3.82.
+Python 3.14 or newer, [uv](https://docs.astral.sh/uv/), and GNU Make 3.82 or newer.
 macOS ships Make 3.81, so use Homebrew `gmake`: `brew install make`.
 
 ```bash
@@ -98,7 +98,7 @@ GitHub Actions on tag `v*` re-runs CI, builds sdist and wheel, and creates a Git
 
 ## How it runs
 
-zeit is the ingest → resolve → expire → search algorithm.
+zeit is the ingest then resolve then expire then search algorithm.
 The current implementation uses:
 
 - **SurrealDB** as the only store
