@@ -42,7 +42,7 @@ V14: md-ospl — Markdown prose: one sentence per line; sentence ! wrap across l
 
 id|status|task|cites
 T1|x|init `src/zeit` pyproject Python ≥3.14 uv ruff basedpyright|V11
-T2|.|add closed types Episode Entity Fact Mention IngestResult SearchHits|V4
+T2|x|add closed types Episode Entity Fact Mention IngestResult SearchHits|V4
 T3|.|add Embedder protocol + PydanticAI impl|V6
 T4|.|add Store protocol + SurrealDB schema and impl|V3,V8
 T5|.|add extract prompts + PydanticAI agents|V5,V12

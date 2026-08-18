@@ -4,4 +4,15 @@ zeit expires the old fact instead, so you can search what's true now and still
 ask what was true last spring.
 """
 
+from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
+
 __version__ = "0.1.0"
+
+__all__ = [
+    "Entity",
+    "Episode",
+    "Fact",
+    "IngestResult",
+    "Mention",
+    "SearchHits",
+]
