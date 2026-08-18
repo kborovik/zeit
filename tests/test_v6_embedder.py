@@ -1,6 +1,9 @@
+import inspect
+
 from pydantic_ai.embeddings import TestEmbeddingModel
 
-from zeit import Embedder, PydanticAIEmbedder
+from zeit import Embedder, ModelStack, PydanticAIEmbedder
+from zeit.embedder import DEFAULT_EMBEDDER_MODEL
 
 
 class _FixedEmbedder:
@@ -15,6 +18,15 @@ async def _run(embedder: Embedder, texts: list[str]) -> list[list[float]]:
 def test_embedder_exports_from_zeit() -> None:
     assert Embedder.__module__ == "zeit.embedder"
     assert PydanticAIEmbedder.__module__ == "zeit.embedder"
+
+
+def test_pydantic_ai_embedder_defaults_to_gemini_embedding_2() -> None:
+    assert DEFAULT_EMBEDDER_MODEL == "google:gemini-embedding-2"
+    params = inspect.signature(PydanticAIEmbedder.__init__).parameters
+    assert params["model"].default == DEFAULT_EMBEDDER_MODEL
+    stack = ModelStack()
+    assert isinstance(stack.embedder, PydanticAIEmbedder)
+    assert isinstance(stack.embedder, Embedder)
 
 
 def test_pydantic_ai_embedder_satisfies_protocol() -> None:

@@ -5,6 +5,8 @@ from typing import Protocol, runtime_checkable
 from pydantic_ai import Embedder as PydanticAI
 from pydantic_ai.embeddings import EmbeddingModel
 
+DEFAULT_EMBEDDER_MODEL = "google:gemini-embedding-2"
+
 
 @runtime_checkable
 class Embedder(Protocol):
@@ -12,7 +14,7 @@ class Embedder(Protocol):
 
 
 class PydanticAIEmbedder:
-    def __init__(self, model: str | EmbeddingModel) -> None:
+    def __init__(self, model: str | EmbeddingModel = DEFAULT_EMBEDDER_MODEL) -> None:
         self._inner = PydanticAI(model)
 
     async def embed(self, texts: list[str]) -> list[list[float]]:

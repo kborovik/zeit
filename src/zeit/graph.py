@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import final
 from uuid import UUID, uuid4
@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 from pydantic_ai.models import Model
 
 from .context import EPISODE_WINDOW, recent_episodes
-from .embedder import Embedder
+from .embedder import Embedder, PydanticAIEmbedder
 from .extract import ExtractedEntity, ExtractedFact, Extraction, extract
 from .invalidate import invalidate
 from .resolve import Resolution, resolve
@@ -19,15 +19,16 @@ from .store import SurrealStore
 from .types import Entity, Episode, Fact, IngestResult, Mention, SearchHits
 
 MAX_CONCURRENCY = 8
+DEFAULT_MODEL = "google:gemini-3.7-flash"
 
 
 @final
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ModelStack:
-    extract: str | Model
-    resolve: str | Model
-    invalidate: str | Model
-    embedder: Embedder
+    extract: str | Model = DEFAULT_MODEL
+    resolve: str | Model = DEFAULT_MODEL
+    invalidate: str | Model = DEFAULT_MODEL
+    embedder: Embedder = field(default_factory=PydanticAIEmbedder)
 
 
 @final
@@ -39,7 +40,7 @@ class Graph:
         database: str,
         credentials: Mapping[str, str] | None = None,
         *,
-        models: ModelStack,
+        models: ModelStack | None = None,
         episode_window: int = EPISODE_WINDOW,
         max_concurrency: int = MAX_CONCURRENCY,
     ) -> None:
@@ -47,7 +48,7 @@ class Graph:
             raise ValueError("max_concurrency must be >= 1")
         self.episode_window = episode_window
         self.max_concurrency = max_concurrency
-        self.models = models
+        self.models = models if models is not None else ModelStack()
         self.store = SurrealStore(url, namespace, database, credentials)
 
     async def aclose(self) -> None:

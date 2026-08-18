@@ -53,7 +53,6 @@ graph = Graph(
     namespace="app",
     database="memory",
     credentials=credentials,
-    models=stack,
 )
 
 await graph.add_episode("Ada left Acme for Birch in March 2026.")
@@ -61,6 +60,9 @@ await graph.add_triplet("Ada", "works_at", "Birch", "Ada works at Birch.")
 hits = await graph.search("where does Ada work?")
 ```
 
+Extract, resolve, and invalidate default to `google:gemini-3.7-flash`.
+The embedder defaults to `google:gemini-embedding-2`.
+Pass a `ModelStack` to override any of those.
 Skip extraction and write a known fact with `add_triplet`.
 Look up a stored entity or fact with `get_entity` and `get_fact`.
 

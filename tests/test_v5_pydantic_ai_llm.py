@@ -7,6 +7,7 @@ from pydantic_ai.models import ModelRequestParameters
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.settings import ModelSettings
 
+from zeit import Graph, ModelStack
 from zeit.extract import (
     ExtractedEntity,
     extract,
@@ -15,6 +16,7 @@ from zeit.extract import (
     extract_facts,
     extract_facts_agent,
 )
+from zeit.graph import DEFAULT_MODEL
 from zeit.invalidate import invalidate_fact_agent
 from zeit.resolve import resolve_entity_agent
 
@@ -23,6 +25,24 @@ SRC = ROOT / "src" / "zeit"
 BANNED_LLM = frozenset(
     {"openai", "anthropic", "litellm", "langchain", "google.generativeai"}
 )
+
+
+def test_model_stack_defaults_to_gemini_flash() -> None:
+    assert DEFAULT_MODEL == "google:gemini-3.7-flash"
+    stack = ModelStack()
+    assert stack.extract == DEFAULT_MODEL
+    assert stack.resolve == DEFAULT_MODEL
+    assert stack.invalidate == DEFAULT_MODEL
+
+
+async def test_graph_model_stack_is_optional() -> None:
+    graph = Graph("mem://", "app", "defaults")
+    try:
+        assert graph.models.extract == DEFAULT_MODEL
+        assert graph.models.resolve == DEFAULT_MODEL
+        assert graph.models.invalidate == DEFAULT_MODEL
+    finally:
+        await graph.aclose()
 
 
 def test_extract_agents_are_pydantic_ai_agents() -> None:

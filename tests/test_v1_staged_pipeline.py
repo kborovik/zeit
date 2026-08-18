@@ -297,6 +297,7 @@ def test_graph_exports_and_ctor_shape() -> None:
     assert "max_concurrency" in params
     assert "token" not in params
     assert "logfire" not in params
+    assert params["models"].default is None
     assert params["episode_window"].default == EPISODE_WINDOW
 
 

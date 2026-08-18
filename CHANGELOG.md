@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+- **Default models:** `Graph` no longer requires a `ModelStack`; extract, resolve, and invalidate default to `google:gemini-3.7-flash`; the embedder defaults to `google:gemini-embedding-2`.
+
 ### Added
 
 - **Hybrid search:** `Graph.search` embeds the query, fuses vector and full-text ranks with reciprocal rank fusion, expands one hop, and defaults to facts that are valid now.
