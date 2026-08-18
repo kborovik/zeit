@@ -71,12 +71,14 @@ extract_entities_agent: Agent[None, ExtractedEntities] = Agent(
     output_type=ExtractedEntities,
     instructions=ENTITY_INSTRUCTIONS,
 )
+extract_entities_agent.instrument = True
 
 extract_facts_agent: Agent[None, ExtractedFacts] = Agent(
     name="zeit.extract.facts",
     output_type=ExtractedFacts,
     instructions=FACT_INSTRUCTIONS,
 )
+extract_facts_agent.instrument = True
 
 
 def _episode_xml(content: str, prior: Sequence[str]) -> str:

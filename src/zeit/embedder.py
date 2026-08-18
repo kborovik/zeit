@@ -15,7 +15,7 @@ class Embedder(Protocol):
 
 class PydanticAIEmbedder:
     def __init__(self, model: str | EmbeddingModel = DEFAULT_EMBEDDER_MODEL) -> None:
-        self._inner = PydanticAI(model)
+        self._inner = PydanticAI(model, instrument=True)
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts:

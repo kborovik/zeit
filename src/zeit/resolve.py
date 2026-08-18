@@ -51,6 +51,7 @@ resolve_entity_agent: Agent[None, EntityMatch] = Agent(
     output_type=EntityMatch,
     instructions=RESOLVE_INSTRUCTIONS,
 )
+resolve_entity_agent.instrument = True
 
 
 def _new_entity(extracted: ExtractedEntity, now: datetime) -> Entity:

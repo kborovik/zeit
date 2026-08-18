@@ -9,6 +9,7 @@
 
 ### Added
 
+- **Logfire traces:** extract, resolve, invalidate, and embed calls emit OpenTelemetry spans so they appear in Logfire when the caller has configured it; `Graph` does not take a token.
 - **Hybrid search:** `Graph.search` embeds the query, fuses vector and full-text ranks with reciprocal rank fusion, expands one hop, and defaults to facts that are valid now.
 - **Uuid getters:** `Graph.get_entity` and `Graph.get_fact` return a stored record or `None`.
 - **Known facts:** `Graph.add_triplet` writes a subject-predicate-object claim without extract, then resolves, invalidates, embeds, and persists.

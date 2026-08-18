@@ -36,6 +36,7 @@ invalidate_fact_agent: Agent[None, Contradiction] = Agent(
     output_type=Contradiction,
     instructions=INVALIDATE_INSTRUCTIONS,
 )
+invalidate_fact_agent.instrument = True
 
 
 def _bound(resolution: Resolution) -> dict[str, Entity]:

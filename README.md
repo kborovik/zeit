@@ -105,10 +105,18 @@ The current implementation uses:
 - **PydanticAI** for every LLM call (`pydantic-ai-slim[google]`)
 - **Logfire** for traces — you configure Logfire in your process; zeit does not take a token
 
+Configure Logfire before you construct a `Graph`.
+
+```python
+import logfire
+
+logfire.configure()
+```
+
 Default Gemini models read `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
 Swap the embedder if you want.
 The graph API stays the same.
 
 ## Status
 
-The package is early: it ships `Graph.add_episode`, `add_triplet`, `search`, `get_entity`, and `get_fact` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, and a last-N episode context window.
+The package is early: it ships `Graph.add_episode`, `add_triplet`, `search`, `get_entity`, and `get_fact` plus closed types, a swappable embedder, a SurrealDB store, first-party extract, resolve, and invalidate agents, a last-N episode context window, and Logfire traces on PydanticAI calls.
