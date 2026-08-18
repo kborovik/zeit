@@ -107,5 +107,5 @@ The graph API stays the same.
 
 ## Status
 
-The package is early: it installs and imports closed graph types.
+The package is early: it installs and imports closed graph types and a swappable embedder.
 The graph API above is the target shape, not a shipped release yet.
