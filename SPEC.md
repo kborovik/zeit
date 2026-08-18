@@ -59,7 +59,7 @@ T14|x|sweep `*.md` one sentence per line; sentence ! wrap|V14
 T15|x|set ModelStack defaults `google:gemini-3.7-flash` + `google:gemini-embedding-2`; ModelStack optional on Graph|V5,V6,I.ctor
 T16|x|swap dep to `pydantic-ai-slim[google]`; drop unused extras|V5,I.env
 T17|x|add e2e: brew `surreal` fixture + org-chart SyntheticWorld + live Gemini + process-start Logfire + AGENTS.md MCP recipe; pytest asserts graph only|V2,V7,V8,V9,V10,I.env,I.cmd,I.agents
-T18|.|add `.env.example` + e2e read `.env` before start|I.env,V7
+T18|x|add `.env.example` + e2e read `.env` before start|I.env,V7
 
 ## §B BUGS
 

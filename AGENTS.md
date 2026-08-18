@@ -36,5 +36,6 @@ ORDER BY start_timestamp DESC
 LIMIT 100
 ```
 
-Set `LOGFIRE_TOKEN` in the process environment before pytest.
+The e2e harness reads repo `.env` before start.
+Set `LOGFIRE_TOKEN` in `.env` or in the process environment before pytest.
 The harness does not pass a token into `Graph`.

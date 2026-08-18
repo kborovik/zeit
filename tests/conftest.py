@@ -8,6 +8,7 @@ import socket
 import subprocess
 import time
 from collections.abc import AsyncIterator, Iterator
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -20,6 +21,28 @@ from e2e_world import (
     SyntheticWorld,
 )
 from zeit import Graph, IngestResult
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ENV = REPO_ROOT / ".env"
+
+
+def load_repo_env(path: Path | None = None) -> None:
+    env_path = REPO_ENV if path is None else path
+    if not env_path.is_file():
+        return
+    for raw in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        if key and key not in os.environ:
+            os.environ[key] = value
 
 
 def has_live_keys() -> bool:
@@ -36,7 +59,10 @@ def _e2e_deselected(config: pytest.Config) -> bool:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    if _e2e_deselected(config) or not has_live_keys():
+    if _e2e_deselected(config):
+        return
+    load_repo_env()
+    if not has_live_keys():
         return
     import logfire
 
