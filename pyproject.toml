@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "zeit"
 version = "0.1.0"
-description = "Bi-temporal ingest-resolve-invalidate-hybrid-search"
+description = "Most knowledge graphs overwrite when facts change. zeit expires the old fact instead, so you can search what's true now and still ask what was true last spring."
 requires-python = ">=3.14"
 dependencies = []
 

@@ -1,11 +1,13 @@
-# Know when a fact was true — and when you learned it
+# Stay current without losing what used to be true
 
-**zeit** is a Python library that turns notes, chats, and events into a searchable knowledge graph.
-Every fact keeps two clocks: when it was true in the world, and when your system wrote it down.
+**zeit** is a Python library for building LLM applications.
+It turns notes, chats, and events into a knowledge graph your model can search.
 
-When a new fact contradicts an old one, zeit expires the old fact.
-It never deletes the row.
-You can still ask what was true last spring.
+Those sources contradict each other.
+Most stores overwrite — the model only remembers the latest version.
+zeit expires the old fact instead of deleting it.
+Your app can retrieve what's true now, and still ask what was true last spring.
+Every fact keeps two clocks: when it was true in the world, and when you wrote it down.
 
 ## Two clocks
 
@@ -32,13 +34,14 @@ Ask what was true in February and you still get Acme.
 
 ## What you do with it
 
-1. **Ingest an episode** — a chunk of text, or a fact you already know.
+1. **Ingest an episode** from a chat turn, a document, or a fact you already know.
 2. zeit pulls out people, things, and claims; two names for the same person become one entity.
 3. A contradicting claim expires the old fact, and history stays.
-4. **Search** mixes meaning, keywords, and nearby graph links; by default you see what’s valid now.
+4. **Search** before the next model call. Hits mix meaning, keywords, and nearby graph links; by default the model sees what’s valid now.
 
 ## Intended shape
 
+Drop a `Graph` into your LLM app.
 The public API is async.
 A `Graph` is one SurrealDB namespace + database.
 
